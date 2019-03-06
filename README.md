@@ -1,2 +1,2 @@
 # HelmetBuddy
-Bluetooth LE Scanner for Spin Scooter Helmets
+Android Bluetooth LE Scanner for Spin Scooter Helmets
