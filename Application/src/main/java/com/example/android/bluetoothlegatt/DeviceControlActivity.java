@@ -16,9 +16,7 @@
 
 package com.example.android.bluetoothlegatt;
 
-import android.Manifest;
 import android.app.Activity;
-import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothGattCharacteristic;
 import android.bluetooth.BluetoothGattService;
 import android.content.BroadcastReceiver;
@@ -27,14 +25,19 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ExpandableListView;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
+import android.widget.RelativeLayout;
 import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
 
@@ -64,6 +67,9 @@ public class DeviceControlActivity extends Activity {
             new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
     private boolean mConnected = false;
     private BluetoothGattCharacteristic mNotifyCharacteristic;
+
+    private PopupWindow popupWindow;
+    private View popupView;
 
     private final String LIST_NAME = "NAME";
     private final String LIST_UUID = "UUID";
@@ -100,6 +106,7 @@ public class DeviceControlActivity extends Activity {
             final String action = intent.getAction();
             if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
                 mConnected = true;
+                showPopUp(DeviceControlActivity.this);
                 updateConnectionState(R.string.connected);
                 invalidateOptionsMenu();
             } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
@@ -159,7 +166,7 @@ public class DeviceControlActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.gatt_services_characteristics);
-        getWindow().getDecorView().setBackgroundColor((Color.argb(255,255,69,0)));
+        //getWindow().getDecorView().setBackgroundColor((Color.argb(255,255,69,0)));
 
         final Intent intent = getIntent();
         mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
@@ -309,5 +316,25 @@ public class DeviceControlActivity extends Activity {
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED);
         intentFilter.addAction(BluetoothLeService.ACTION_DATA_AVAILABLE);
         return intentFilter;
+    }
+
+    public void showPopUp(Context context){
+        RelativeLayout viewGroup = findViewById(R.id.popup);
+        LayoutInflater inflater = (LayoutInflater)context.getSystemService(LAYOUT_INFLATER_SERVICE);
+        popupView = inflater.inflate(R.layout.popupwindow, viewGroup);
+
+        int width = RelativeLayout.LayoutParams.MATCH_PARENT;
+        int height = RelativeLayout.LayoutParams.MATCH_PARENT;
+
+        popupWindow = new PopupWindow(popupView, width, 1000, true);
+        popupWindow.showAtLocation(popupView, Gravity.CENTER, 0, 0);
+
+        popupView.setOnTouchListener(new View.OnTouchListener(){
+            @Override
+            public boolean onTouch(View v, MotionEvent event){
+                popupWindow.dismiss();
+                return true;
+            }
+        });
     }
 }
