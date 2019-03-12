@@ -33,7 +33,8 @@
     <string name="menu_disconnect">Disconnect</string>
     <string name="menu_scan">Scan</string>
     <string name="menu_stop">Stop</string>
-    <string name="button">Button</string>
     <string name="unlock_this_helmet">Unlock This Helmet?</string>
     <string name="unlock">Unlock</string>
+    <string name="lock">Lock</string>
+    <string name="settings">Settings</string>
 </resources>

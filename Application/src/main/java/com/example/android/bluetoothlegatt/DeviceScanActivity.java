@@ -9,7 +9,9 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.content.res.Resources;
 import android.graphics.Color;
+import android.graphics.Typeface;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.Log;
@@ -45,8 +47,18 @@ public class DeviceScanActivity extends ListActivity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        getWindow().getDecorView().setBackgroundColor((Color.argb(255,255,69,0)));
-        getActionBar().setTitle("Spin Helmet");
+        getWindow().getDecorView().setBackground(getResources().getDrawable(R.drawable.spinbg));
+        getActionBar().setTitle("spin helmet");
+        int actionBarTitleId = Resources.getSystem().getIdentifier("action_bar_title", "id", "android");
+        if (actionBarTitleId > 0) {
+            TextView title = findViewById(actionBarTitleId);
+            if (title != null) {
+                title.setTextColor(Color.argb(255, 255, 69, 0));
+                title.setAllCaps(true);
+                title.setTextSize(24);
+                title.setTypeface(Typeface.MONOSPACE, Typeface.BOLD);
+            }
+        }
 
         mHandler = new Handler();
 
@@ -185,7 +197,7 @@ public class DeviceScanActivity extends ListActivity {
         }
 
         public void addDevice(BluetoothDevice device) {
-            if(!mLeDevices.contains(device)) {
+            if (!mLeDevices.contains(device)) {
                 mLeDevices.add(device);
             }
         }
@@ -220,8 +232,8 @@ public class DeviceScanActivity extends ListActivity {
             if (view == null) {
                 view = mInflator.inflate(R.layout.listitem_device, null);
                 viewHolder = new ViewHolder();
-                viewHolder.deviceAddress = view.findViewById(R.id.device_address);
-                viewHolder.deviceName = view.findViewById(R.id.device_name);
+//                viewHolder.deviceAddress = view.findViewById(R.id.device_address);
+//                viewHolder.deviceName = view.findViewById(R.id.device_name);
                 view.setTag(viewHolder);
             } else {
                 viewHolder = (ViewHolder) view.getTag();
@@ -229,11 +241,11 @@ public class DeviceScanActivity extends ListActivity {
 
             BluetoothDevice device = mLeDevices.get(i);
             final String deviceName = device.getName();
-            if (deviceName != null && deviceName.length() > 0)
-                viewHolder.deviceName.setText(deviceName);
-            else
-                viewHolder.deviceName.setText(R.string.unknown_device);
-            viewHolder.deviceAddress.setText(device.getAddress());
+//            if (deviceName != null && deviceName.length() > 0)
+//                viewHolder.deviceName.setText("Spin Helmet");
+//            else
+//                viewHolder.deviceName.setText(R.string.unknown_device);
+//            viewHolder.deviceAddress.setText(device.getAddress());
 
             return view;
         }
@@ -241,14 +253,14 @@ public class DeviceScanActivity extends ListActivity {
 
     //  Permissions
     private boolean hasPermissions() {
-        Log.i("BLE","******************Checking for permissions needed for BLE******************");
+        Log.i("BLE", "******************Checking for permissions needed for BLE******************");
         if (!hasBluetoothPermission()) {
             requestBluetoothEnable();
         } else if (!hasLocationPermission()) {
             requestLocationPermission();
         }
 
-        if(hasBluetoothPermission() && hasLocationPermission())
+        if (hasBluetoothPermission() && hasLocationPermission())
             return true;
 
         return false;
@@ -269,7 +281,7 @@ public class DeviceScanActivity extends ListActivity {
         if (mBluetoothAdapter == null)
             mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
 
-        Log.i("BLE","******************Force enable Bluetooth******************");
+        Log.i("BLE", "******************Force enable Bluetooth******************");
 
         // Force enable BT access
         Intent enableBTIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
@@ -277,7 +289,7 @@ public class DeviceScanActivity extends ListActivity {
     }
 
     private void requestLocationPermission() {
-        Log.i("BLE","******************Force enable GPS******************");
+        Log.i("BLE", "******************Force enable GPS******************");
         //  Force enable GPS access
         requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_ENABLE_GPS);
     }
@@ -291,8 +303,8 @@ public class DeviceScanActivity extends ListActivity {
                     runOnUiThread(new Runnable() {
                         @Override
                         public void run() {
-                            if(device.getName() != null) {
-                                if(device.getName().contains("Adafruit")) {
+                            if (device.getName() != null) {
+                                if (device.getName().contains("Adafruit")) {
                                     System.out.println("***** New Device : " + device.getName());
                                     mLeDeviceListAdapter.addDevice(device);
                                     mLeDeviceListAdapter.notifyDataSetChanged();
@@ -302,6 +314,20 @@ public class DeviceScanActivity extends ListActivity {
                     });
                 }
             };
+
+//    private void SetupHelmetButton() {
+//        System.out.println("*****   Activating helmet button usage");
+//        helmetBtn = findViewById(R.id.helmet_icon);
+//        helmetBtn.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View view) {
+//                System.out.println("*****   Helmet Button Touched");
+//                if (mLeDeviceListAdapter.getCount() > 0) {
+//
+//                }
+//            }
+//        });
+//    }
 
     static class ViewHolder {
         TextView deviceName;
