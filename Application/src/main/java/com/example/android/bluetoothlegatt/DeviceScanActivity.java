@@ -31,17 +31,17 @@ import java.util.ArrayList;
  * Activity for scanning and displaying available Bluetooth LE devices.
  */
 public class DeviceScanActivity extends ListActivity {
-    private LeDeviceListAdapter mLeDeviceListAdapter;
-    private BluetoothAdapter mBluetoothAdapter;
-    private boolean mScanning;
-    private Handler mHandler;
+    LeDeviceListAdapter mLeDeviceListAdapter;
+    BluetoothAdapter mBluetoothAdapter;
+    boolean mScanning;
+    Handler mHandler;
 
     //  Requests
-    private int REQUEST_ENABLE_BT = 99;
-    private int REQUEST_ENABLE_GPS = 98;
+    int REQUEST_ENABLE_BT = 99;
+    int REQUEST_ENABLE_GPS = 98;
 
     // Stops scanning after 10 seconds.
-    private static final long SCAN_PERIOD = 10000;
+    static final long SCAN_PERIOD = 10000;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -163,7 +163,7 @@ public class DeviceScanActivity extends ListActivity {
         startActivity(intent);
     }
 
-    private void scanLeDevice(final boolean enable) {
+    void scanLeDevice(final boolean enable) {
         hasPermissions();
         if (enable) {
             // Stops scanning after a pre-defined scan period.
@@ -186,9 +186,9 @@ public class DeviceScanActivity extends ListActivity {
     }
 
     // Adapter for holding devices found through scanning.
-    private class LeDeviceListAdapter extends BaseAdapter {
-        private ArrayList<BluetoothDevice> mLeDevices;
-        private LayoutInflater mInflator;
+    class LeDeviceListAdapter extends BaseAdapter {
+        ArrayList<BluetoothDevice> mLeDevices;
+        LayoutInflater mInflator;
 
         public LeDeviceListAdapter() {
             super();
@@ -252,8 +252,8 @@ public class DeviceScanActivity extends ListActivity {
     }
 
     //  Permissions
-    private boolean hasPermissions() {
-        Log.i("BLE", "******************Checking for permissions needed for BLE******************");
+    boolean hasPermissions() {
+        Log.i("BLE", "******************    Checking for permissions needed for BLE    ******************");
         if (!hasBluetoothPermission()) {
             requestBluetoothEnable();
         } else if (!hasLocationPermission()) {
@@ -266,36 +266,33 @@ public class DeviceScanActivity extends ListActivity {
         return false;
     }
 
-    private boolean hasBluetoothPermission() {
+    boolean hasBluetoothPermission() {
         if (mBluetoothAdapter == null || !mBluetoothAdapter.isEnabled()) {
             return false;
         }
         return true;
     }
 
-    private boolean hasLocationPermission() {
+    boolean hasLocationPermission() {
         return checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == getPackageManager().PERMISSION_GRANTED;
     }
 
-    private void requestBluetoothEnable() {
+    void requestBluetoothEnable() {
         if (mBluetoothAdapter == null)
             mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
-
-        Log.i("BLE", "******************Force enable Bluetooth******************");
 
         // Force enable BT access
         Intent enableBTIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
         startActivityForResult(enableBTIntent, REQUEST_ENABLE_BT);
     }
 
-    private void requestLocationPermission() {
-        Log.i("BLE", "******************Force enable GPS******************");
+    void requestLocationPermission() {
         //  Force enable GPS access
         requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_ENABLE_GPS);
     }
 
     // Device scan callback.
-    private BluetoothAdapter.LeScanCallback mLeScanCallback =
+    BluetoothAdapter.LeScanCallback mLeScanCallback =
             new BluetoothAdapter.LeScanCallback() {
 
                 @Override
@@ -315,20 +312,7 @@ public class DeviceScanActivity extends ListActivity {
                 }
             };
 
-//    private void SetupHelmetButton() {
-//        System.out.println("*****   Activating helmet button usage");
-//        helmetBtn = findViewById(R.id.helmet_icon);
-//        helmetBtn.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                System.out.println("*****   Helmet Button Touched");
-//                if (mLeDeviceListAdapter.getCount() > 0) {
-//
-//                }
-//            }
-//        });
-//    }
-
+    //  View Holder Class
     static class ViewHolder {
         TextView deviceName;
         TextView deviceAddress;

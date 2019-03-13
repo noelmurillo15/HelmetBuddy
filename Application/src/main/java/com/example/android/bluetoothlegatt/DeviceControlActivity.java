@@ -31,6 +31,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.widget.ExpandableListView;
 import android.widget.LinearLayout;
@@ -49,39 +50,38 @@ import java.util.List;
  * Bluetooth LE API.
  */
 public class DeviceControlActivity extends Activity {
-    private final static String TAG = DeviceControlActivity.class.getSimpleName();
+    final static String TAG = DeviceControlActivity.class.getSimpleName();
 
     public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
 
     //  Popup UI
-    private TextView mPopupConnectionState;
-    private TextView mPopupDataField;
-    private TextView mPopupDeviceName;
-    private ExpandableListView mPopupServicesList;
+    TextView mPopupConnectionState;
+    //TextView mPopupDataField;
+    //TextView mPopupDeviceName;
+    ExpandableListView mPopupServicesList;
 
-//    private TextView mConnectionState;
-//    private TextView mDataField;
-    private String mDeviceName;
-    private String mDeviceAddress;
-    private ExpandableListView mGattServicesList;
-    private BluetoothLeService mBluetoothLeService;
-    private ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics =
-            new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
-    private boolean mConnected = false;
-    private BluetoothGattCharacteristic mNotifyCharacteristic;
+    //    TextView mConnectionState;
+//    TextView mDataField;
+    String mDeviceName;
+    String mDeviceAddress;
+    ExpandableListView mGattServicesList;
+    BluetoothLeService mBluetoothLeService;
+    ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics = new ArrayList<>();
+    boolean mConnected = false;
+    BluetoothGattCharacteristic mNotifyCharacteristic;
 
-    private PopupWindow popupWindow;
-    private View popupView;
+    PopupWindow popupWindow;
+    View popupView;
 
-    private final String LIST_NAME = "NAME";
-    private final String LIST_UUID = "UUID";
+    final String LIST_NAME = "NAME";
+    final String LIST_UUID = "UUID";
 
     // Code to manage Service lifecycle.
-    private final ServiceConnection mServiceConnection = new ServiceConnection() {
-
+    final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder service) {
+            System.out.println("*****   DeviceControlActivity::onServiceConnected CALLED!   *****");
             mBluetoothLeService = ((BluetoothLeService.LocalBinder) service).getService();
             if (!mBluetoothLeService.initialize()) {
                 Log.e(TAG, "Unable to initialize Bluetooth");
@@ -93,6 +93,7 @@ public class DeviceControlActivity extends Activity {
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
+            System.out.println("*****   DeviceControlActivity::onServiceDisconnected CALLED!   *****");
             mBluetoothLeService = null;
         }
     };
@@ -103,20 +104,21 @@ public class DeviceControlActivity extends Activity {
     // ACTION_GATT_SERVICES_DISCOVERED: discovered GATT services.
     // ACTION_DATA_AVAILABLE: received data from the device.  This can be a result of read
     //                        or notification operations.
-    private final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
+    final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
+            System.out.println("*****   DeviceControlActivity::onReceive CALLED!   *****");
             final String action = intent.getAction();
             if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
                 System.out.println("*****   Creating the popup window");
-                if(popupWindow == null) {
+                if (popupWindow == null) {
                     showPopUp(DeviceControlActivity.this);
                 }
                 mConnected = true;
                 updateConnectionState(R.string.connected);
                 invalidateOptionsMenu();
             } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
-                if(popupWindow != null) {
+                if (popupWindow != null) {
                     popupWindow.dismiss();
                     popupWindow = null;
                     System.out.println("*****   Dismissing the popup window");
@@ -138,11 +140,12 @@ public class DeviceControlActivity extends Activity {
     // demonstrates 'Read' and 'Notify' features.  See
     // http://d.android.com/reference/android/bluetooth/BluetoothGatt.html for the complete
     // list of supported characteristic features.
-    private final ExpandableListView.OnChildClickListener servicesListClickListner =
+    final ExpandableListView.OnChildClickListener servicesListClickListner =
             new ExpandableListView.OnChildClickListener() {
                 @Override
                 public boolean onChildClick(ExpandableListView parent, View v, int groupPosition,
                                             int childPosition, long id) {
+                    System.out.println("*****   DeviceControlActivity::onChildClick CALLED!   *****");
                     if (mGattCharacteristics != null) {
                         final BluetoothGattCharacteristic characteristic =
                                 mGattCharacteristics.get(groupPosition).get(childPosition);
@@ -168,20 +171,23 @@ public class DeviceControlActivity extends Activity {
                 }
             };
 
-    private void clearUI() {
+    void clearUI() {
+        System.out.println("*****   DeviceControlActivity::clearUI CALLED!   *****");
         mGattServicesList.setAdapter((SimpleExpandableListAdapter) null);
 //        mDataField.setText(R.string.no_data);
 
-        if(mPopupServicesList != null)
+        if (mPopupServicesList != null)
             mPopupServicesList.setAdapter((SimpleExpandableListAdapter) null);
 
-        if(mPopupDataField != null)
-            mPopupDataField.setText("0");
+//        if(mPopupDataField != null)
+//            mPopupDataField.setText("0");
     }
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+        System.out.println("*****   DeviceControlActivity::onCreate CALLED!   *****");
 
         setContentView(R.layout.gatt_services_characteristics);
         getWindow().getDecorView().setBackground(getResources().getDrawable(R.drawable.spinbg));
@@ -190,12 +196,8 @@ public class DeviceControlActivity extends Activity {
         mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
         mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
 
-        // Sets up UI references.
-//        ((TextView) findViewById(R.id.device_address)).setText(mDeviceAddress);
         mGattServicesList = findViewById(R.id.gatt_services_list);
         mGattServicesList.setOnChildClickListener(servicesListClickListner);
-//        mConnectionState =  findViewById(R.id.connection_state);
-//        mDataField = findViewById(R.id.data_value);
 
         getActionBar().setTitle(mDeviceName);
         getActionBar().setDisplayHomeAsUpEnabled(true);
@@ -206,6 +208,7 @@ public class DeviceControlActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        System.out.println("*****   DeviceControlActivity::onResume CALLED!   *****");
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
         if (mBluetoothLeService != null) {
             final boolean result = mBluetoothLeService.connect(mDeviceAddress);
@@ -216,18 +219,21 @@ public class DeviceControlActivity extends Activity {
     @Override
     protected void onPause() {
         super.onPause();
+        System.out.println("*****   DeviceControlActivity::onPause CALLED!   *****");
         unregisterReceiver(mGattUpdateReceiver);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
+        System.out.println("*****   DeviceControlActivity::onDestroy CALLED!   *****");
         unbindService(mServiceConnection);
         mBluetoothLeService = null;
     }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
+        System.out.println("*****   DeviceControlActivity::onCreateOptionsMenu CALLED!   *****");
         getMenuInflater().inflate(R.menu.gatt_services, menu);
         if (mConnected) {
             menu.findItem(R.id.menu_connect).setVisible(false);
@@ -241,7 +247,8 @@ public class DeviceControlActivity extends Activity {
 
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-        switch(item.getItemId()) {
+        System.out.println("*****   DeviceControlActivity::onOptionsItemSelected CALLED!   *****");
+        switch (item.getItemId()) {
             case R.id.menu_connect:
                 mBluetoothLeService.connect(mDeviceAddress);
                 return true;
@@ -255,41 +262,44 @@ public class DeviceControlActivity extends Activity {
         return super.onOptionsItemSelected(item);
     }
 
-    private void updateConnectionState(final int resourceId) {
+    void updateConnectionState(final int resourceId) {
+        System.out.println("*****   DeviceControlActivity::updateConnectionState CALLED!   *****");
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
 //                mConnectionState.setText(resourceId);
-                if(mPopupConnectionState != null)
+                if (mPopupConnectionState != null)
                     mPopupConnectionState.setText(resourceId);
             }
         });
     }
 
-    private void displayData(String data) {
+    void displayData(String data) {
+        System.out.println("*****   DeviceControlActivity::displayData CALLED!   *****");
         if (data != null) {
 //            mDataField.setText(data);
-            if(mPopupDataField != null)
-                mPopupDataField.setText(data);
+//            if(mPopupDataField != null)
+//                mPopupDataField.setText(data);
         }
     }
 
     // Demonstrates how to iterate through the supported GATT Services/Characteristics.
     // In this sample, we populate the data structure that is bound to the ExpandableListView
     // on the UI.
-    private void displayGattServices(List<BluetoothGattService> gattServices) {
+    void displayGattServices(List<BluetoothGattService> gattServices) {
+        System.out.println("*****   DeviceControlActivity::displayGattServices CALLED!   *****");
         if (gattServices == null) return;
-        String uuid = null;
+        String uuid;
         String unknownServiceString = getResources().getString(R.string.unknown_service);
         String unknownCharaString = getResources().getString(R.string.unknown_characteristic);
-        ArrayList<HashMap<String, String>> gattServiceData = new ArrayList<HashMap<String, String>>();
+        ArrayList<HashMap<String, String>> gattServiceData = new ArrayList<>();
         ArrayList<ArrayList<HashMap<String, String>>> gattCharacteristicData
-                = new ArrayList<ArrayList<HashMap<String, String>>>();
-        mGattCharacteristics = new ArrayList<ArrayList<BluetoothGattCharacteristic>>();
+                = new ArrayList<>();
+        mGattCharacteristics = new ArrayList<>();
 
         // Loops through available GATT Services.
         for (BluetoothGattService gattService : gattServices) {
-            HashMap<String, String> currentServiceData = new HashMap<String, String>();
+            HashMap<String, String> currentServiceData = new HashMap<>();
             uuid = gattService.getUuid().toString();
             currentServiceData.put(
                     LIST_NAME, SampleGattAttributes.lookup(uuid, unknownServiceString));
@@ -297,16 +307,16 @@ public class DeviceControlActivity extends Activity {
             gattServiceData.add(currentServiceData);
 
             ArrayList<HashMap<String, String>> gattCharacteristicGroupData =
-                    new ArrayList<HashMap<String, String>>();
+                    new ArrayList<>();
             List<BluetoothGattCharacteristic> gattCharacteristics =
                     gattService.getCharacteristics();
             ArrayList<BluetoothGattCharacteristic> charas =
-                    new ArrayList<BluetoothGattCharacteristic>();
+                    new ArrayList<>();
 
             // Loops through available Characteristics.
             for (BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics) {
                 charas.add(gattCharacteristic);
-                HashMap<String, String> currentCharaData = new HashMap<String, String>();
+                HashMap<String, String> currentCharaData = new HashMap<>();
                 uuid = gattCharacteristic.getUuid().toString();
                 currentCharaData.put(
                         LIST_NAME, SampleGattAttributes.lookup(uuid, unknownCharaString));
@@ -321,19 +331,20 @@ public class DeviceControlActivity extends Activity {
                 this,
                 gattServiceData,
                 android.R.layout.simple_expandable_list_item_2,
-                new String[] {LIST_NAME, LIST_UUID},
-                new int[] { android.R.id.text1, android.R.id.text2 },
+                new String[]{LIST_NAME, LIST_UUID},
+                new int[]{android.R.id.text1, android.R.id.text2},
                 gattCharacteristicData,
                 android.R.layout.simple_expandable_list_item_2,
-                new String[] {LIST_NAME, LIST_UUID},
-                new int[] { android.R.id.text1, android.R.id.text2 }
+                new String[]{LIST_NAME, LIST_UUID},
+                new int[]{android.R.id.text1, android.R.id.text2}
         );
         mGattServicesList.setAdapter(gattServiceAdapter);
-        if(mPopupServicesList != null)
+        if (mPopupServicesList != null)
             mPopupServicesList.setAdapter(gattServiceAdapter);
     }
 
-    private static IntentFilter makeGattUpdateIntentFilter() {
+    static IntentFilter makeGattUpdateIntentFilter() {
+        System.out.println("*****   DeviceControlActivity::makeGattUpdateIntentFilter CALLED!   *****");
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
@@ -342,8 +353,9 @@ public class DeviceControlActivity extends Activity {
         return intentFilter;
     }
 
-    public void showPopUp(Context context){
-        if(popupWindow == null) {
+    public void showPopUp(Context context) {
+        System.out.println("*****   DeviceControlActivity::showPopUp CALLED!   *****");
+        if (popupWindow == null) {
             //  View
             LinearLayout viewGroup = findViewById(R.id.popup);
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
@@ -355,57 +367,55 @@ public class DeviceControlActivity extends Activity {
 
             //  Create & Show Popup window
             popupWindow = new PopupWindow(popupView, width, height, false);
-            //popupWindow.showAtLocation(popupView, Gravity.CENTER, 0, 0);
-
             setContentView(R.layout.popupwindow);
         }
+
         //  Popup UI references
         mPopupServicesList = findViewById(R.id.popup_gatt_services_list);
-        if(mPopupServicesList != null)
+        if (mPopupServicesList != null)
             mPopupServicesList.setOnChildClickListener(servicesListClickListner);
         else
             System.out.println("*****   Popup Window Gatt Services List ExpandableListView is NULL");
 
-        mPopupDeviceName = findViewById(R.id.popup_device_address);
         mPopupConnectionState = findViewById(R.id.popup_connection_state);
-        mPopupDataField = findViewById(R.id.popup_data_value);
+//        mPopupDeviceName = findViewById(R.id.popup_device_address);
+//        mPopupDataField = findViewById(R.id.popup_data_value);
 
-        //  Testing - remove later
-//        try {
+        //  Update UI
+        try {   //  Unlock Button
+            ((TextView) findViewById(R.id.UnlockLock)).setText("Unlock Helmet");
+        } catch (Exception e) {
+            System.out.println("*****   Failed to change Unlock button text");
+        }
+//        try { //  Settings Button
 //            ((TextView) findViewById(R.id.Settings)).setText("My Settings");
 //        } catch (Exception e){
 //            System.out.println("*****   Failed to change Settings button text");
 //        }
 
-        try {
-            ((TextView) findViewById(R.id.UnlockLock)).setText("Unlock Helmet");
-        } catch (Exception e){
-            System.out.println("*****   Failed to change Unlock button text");
-        }
-
-        //  Safety Checks
-        if(mPopupDeviceName != null)
-            mPopupDeviceName.setText(mDeviceAddress);
-        else
-            System.out.println("*****   Popup Window Device Name TextView is NULL");
-
-        if(mPopupConnectionState != null)
+        if (mPopupConnectionState != null)
             mPopupConnectionState.setText("Connected");
         else
             System.out.println("*****   Popup Window Connection State TextView is NULL");
 
-        if(mPopupDataField != null)
-            mPopupDataField.setText("0");
-        else
-            System.out.println("*****   Popup Window Data Field TextView is NULL");
+//        if(mPopupDeviceName != null)
+//            mPopupDeviceName.setText(mDeviceAddress);
+//        else
+//            System.out.println("*****   Popup Window Device Name TextView is NULL");
+
+//        if(mPopupDataField != null)
+//            mPopupDataField.setText("0");
+//        else
+//            System.out.println("*****   Popup Window Data Field TextView is NULL");
 
         //  Touch sense
-//        popupView.setOnTouchListener(new View.OnTouchListener(){
-//            @Override
-//            public boolean onTouch(View v, MotionEvent event){
-//                popupWindow.dismiss();
-//                return true;
-//            }
-//        });
+        popupView.setOnTouchListener(new View.OnTouchListener() {
+            @Override
+            public boolean onTouch(View v, MotionEvent event) {
+                popupWindow.dismiss();
+                onBackPressed();
+                return true;
+            }
+        });
     }
 }

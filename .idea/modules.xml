@@ -4,6 +4,8 @@
     <modules>
       <module fileurl="file://$PROJECT_DIR$/0166-Helmet-Friend.iml" filepath="$PROJECT_DIR$/0166-Helmet-Friend.iml" />
       <module fileurl="file://$PROJECT_DIR$/Application/Application.iml" filepath="$PROJECT_DIR$/Application/Application.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Application/Application.iml" filepath="$PROJECT_DIR$/Application/Application.iml" />
+      <module fileurl="file://$PROJECT_DIR$/HelmetBuddy.iml" filepath="$PROJECT_DIR$/HelmetBuddy.iml" />
     </modules>
   </component>
 </project>
