@@ -7,7 +7,7 @@
     <!--Labels-->
     <string name="label_data">Data:</string>
     <string name="label_device_address">Device address:</string>
-    <string name="label_state">Helmet Status : </string>
+    <string name="label_state">Status : </string>
     <string name="no_data">No data</string>
     <string name="connected">Connected</string>
     <string name="disconnected">Disconnected</string>
@@ -28,7 +28,8 @@
     <!--Helmet Buttons-->
     <string name="unlock_this_helmet">Unlock Helmet</string>
     <string name="unlock"> | Unlocked</string>
-    <string name="lock">Locked</string>
+    <string name="lock"> | Locked</string>
     <string name="lock_this_helmet">Lock Helmet</string>
+    <string name="close_popup_btn">X</string>
 
 </resources>

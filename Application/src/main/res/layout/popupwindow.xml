@@ -3,9 +3,10 @@
     android:id="@+id/popup"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="20dp"
+    android:layout_margin="10dp"
     android:background="#FFF"
     android:gravity="center"
+    android:layout_gravity="center_vertical"
     android:orientation="vertical"
     android:padding="10dp">
 
@@ -34,16 +35,31 @@
             <!--android:textSize="18sp" />-->
     <!--</LinearLayout>-->
 
+    <Button
+        android:id="@+id/close_popup_window"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:background="#F60"
+        android:gravity="center"
+        android:text="@string/close_popup_btn"
+        android:textColor="#FFF"
+        android:typeface="normal"
+        android:layout_gravity="right"/>
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_margin="10dp"
         android:orientation="horizontal">
 
+
+
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/label_state"
+            android:textStyle="bold"
+            android:typeface="normal"
             android:textColor="#000"
             android:textSize="18sp" />
 
@@ -53,18 +69,20 @@
 
         <TextView
             android:id="@+id/popup_connection_state"
-            android:layout_width="115dp"
+            android:layout_width="116dp"
             android:layout_height="wrap_content"
             android:text="@string/disconnected"
+            android:typeface="normal"
             android:textColor="#000"
             android:textSize="18sp" />
 
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/unlock"
-            android:textColor="#000"
-            android:textSize="18sp" />
+        <!--<TextView-->
+            <!--android:id="@+id/popup_lock_status"-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="wrap_content"-->
+            <!--android:text="@string/unlock"-->
+            <!--android:textColor="#000"-->
+            <!--android:textSize="18sp" />-->
     </LinearLayout>
 
     <!--<LinearLayout-->
@@ -103,6 +121,7 @@
         android:background="#F60"
         android:gravity="bottom|center|top"
         android:text="@string/unlock_this_helmet"
+        android:typeface="normal"
         android:textColor="#FFF"/>
 
     <!--<Space-->

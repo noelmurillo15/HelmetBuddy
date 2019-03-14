@@ -25,14 +25,17 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.ColorInt;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.MotionEvent;
 import android.view.View;
+import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
@@ -60,6 +63,10 @@ public class DeviceControlActivity extends Activity {
     //TextView mPopupDataField;
     //TextView mPopupDeviceName;
     ExpandableListView mPopupServicesList;
+    boolean locked = false;
+    boolean connected = false;
+    Button unlocklock;
+    Button popupclose;
 
     //    TextView mConnectionState;
 //    TextView mDataField;
@@ -190,6 +197,7 @@ public class DeviceControlActivity extends Activity {
         System.out.println("*****   DeviceControlActivity::onCreate CALLED!   *****");
 
         setContentView(R.layout.gatt_services_characteristics);
+        getActionBar().hide();
         getWindow().getDecorView().setBackground(getResources().getDrawable(R.drawable.spinbg));
 
         final Intent intent = getIntent();
@@ -199,8 +207,8 @@ public class DeviceControlActivity extends Activity {
         mGattServicesList = findViewById(R.id.gatt_services_list);
         mGattServicesList.setOnChildClickListener(servicesListClickListner);
 
-        getActionBar().setTitle(mDeviceName);
-        getActionBar().setDisplayHomeAsUpEnabled(true);
+//        getActionBar().setTitle(mDeviceName);
+//        getActionBar().setDisplayHomeAsUpEnabled(true);
         Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
     }
@@ -236,11 +244,11 @@ public class DeviceControlActivity extends Activity {
         System.out.println("*****   DeviceControlActivity::onCreateOptionsMenu CALLED!   *****");
         getMenuInflater().inflate(R.menu.gatt_services, menu);
         if (mConnected) {
-            menu.findItem(R.id.menu_connect).setVisible(false);
-            menu.findItem(R.id.menu_disconnect).setVisible(true);
+//            menu.findItem(R.id.menu_connect).setVisible(false);
+//            menu.findItem(R.id.menu_disconnect).setVisible(true);
         } else {
-            menu.findItem(R.id.menu_connect).setVisible(true);
-            menu.findItem(R.id.menu_disconnect).setVisible(false);
+//            menu.findItem(R.id.menu_connect).setVisible(true);
+//            menu.findItem(R.id.menu_disconnect).setVisible(false);
         }
         return true;
     }
@@ -249,13 +257,14 @@ public class DeviceControlActivity extends Activity {
     public boolean onOptionsItemSelected(MenuItem item) {
         System.out.println("*****   DeviceControlActivity::onOptionsItemSelected CALLED!   *****");
         switch (item.getItemId()) {
-            case R.id.menu_connect:
-                mBluetoothLeService.connect(mDeviceAddress);
-                return true;
-            case R.id.menu_disconnect:
-                mBluetoothLeService.disconnect();
-                return true;
+//            case R.id.menu_connect:
+//                mBluetoothLeService.connect(mDeviceAddress);
+//                return true;
+//            case R.id.menu_disconnect:
+//                mBluetoothLeService.disconnect();
+//                return true;
             case android.R.id.home:
+                mBluetoothLeService.disconnect();
                 onBackPressed();
                 return true;
         }
@@ -268,8 +277,17 @@ public class DeviceControlActivity extends Activity {
             @Override
             public void run() {
 //                mConnectionState.setText(resourceId);
-                if (mPopupConnectionState != null)
+                if (mPopupConnectionState != null){
                     mPopupConnectionState.setText(resourceId);
+
+                    if(mPopupConnectionState.getText() == getResources().getString(R.string.disconnected)){
+                        SetLock(true);
+                        connected = false;
+                    }
+                    else{
+                        connected = true;
+                    }
+                }
             }
         });
     }
@@ -378,6 +396,13 @@ public class DeviceControlActivity extends Activity {
             System.out.println("*****   Popup Window Gatt Services List ExpandableListView is NULL");
 
         mPopupConnectionState = findViewById(R.id.popup_connection_state);
+        locked = false;
+
+        unlocklock = findViewById(R.id.UnlockLock);
+        popupclose = findViewById(R.id.close_popup_window);
+
+        ToggleLock();
+
 //        mPopupDeviceName = findViewById(R.id.popup_device_address);
 //        mPopupDataField = findViewById(R.id.popup_data_value);
 
@@ -393,10 +418,10 @@ public class DeviceControlActivity extends Activity {
 //            System.out.println("*****   Failed to change Settings button text");
 //        }
 
-        if (mPopupConnectionState != null)
-            mPopupConnectionState.setText("Connected");
-        else
-            System.out.println("*****   Popup Window Connection State TextView is NULL");
+//        if (mPopupConnectionState != null)
+//            mPopupConnectionState.setText("Connected");
+//        else
+//            System.out.println("*****   Popup Window Connection State TextView is NULL");
 
 //        if(mPopupDeviceName != null)
 //            mPopupDeviceName.setText(mDeviceAddress);
@@ -408,14 +433,43 @@ public class DeviceControlActivity extends Activity {
 //        else
 //            System.out.println("*****   Popup Window Data Field TextView is NULL");
 
-        //  Touch sense
-        popupView.setOnTouchListener(new View.OnTouchListener() {
+        //  Button Sense
+        unlocklock.setOnClickListener(new View.OnClickListener() {
             @Override
-            public boolean onTouch(View v, MotionEvent event) {
-                popupWindow.dismiss();
-                onBackPressed();
-                return true;
+            public void onClick(View v) {
+                ToggleLock();
             }
         });
+
+        popupclose.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                popupWindow.dismiss();
+                onBackPressed();
+            }
+        });
+    }
+
+    void onLockChange(){
+        if(locked){
+            ((TextView) findViewById(R.id.UnlockLock)).setText(getResources().getString(R.string.unlock_this_helmet));
+        }
+        else{
+            ((TextView) findViewById(R.id.UnlockLock)).setText(getResources().getString(R.string.lock_this_helmet));
+        }
+    }
+
+    void SetLock(boolean _b){
+        locked = _b;
+        onLockChange();
+    }
+
+    void ToggleLock(){
+        locked = !locked;
+
+        if(!connected)
+            locked = true;
+
+        onLockChange();
     }
 }
