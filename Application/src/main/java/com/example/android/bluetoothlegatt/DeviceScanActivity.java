@@ -11,6 +11,8 @@ import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.os.Handler;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -27,14 +29,14 @@ public class DeviceScanActivity extends ListActivity {
     boolean mScanning;
 
     Button helmetBtn;
-    Button settingaBtn;
+    Button settingsBtn;
 
     Handler mHandler;
     Runnable mRunnable;
 
     /**  Permission Requests   */
     final int REQUEST_ENABLE_BT = 99;
-    final int REQUEST_ENABLE_GPS = 98;
+    final int REQUEST_ENABLE_GPS = 1001;
 
     /** BLE Scan period   */
     static final long SCAN_PERIOD = 2000;
@@ -47,6 +49,18 @@ public class DeviceScanActivity extends ListActivity {
 
         getWindow().getDecorView().setBackground(getResources().getDrawable(R.drawable.spinbg));
         getActionBar().hide();
+
+        /**  Check All permissions needed for BLE Scan   */
+        int permissionCheck = ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION);
+        if (permissionCheck != PackageManager.PERMISSION_GRANTED){
+            if (ActivityCompat.shouldShowRequestPermissionRationale(this, Manifest.permission.ACCESS_FINE_LOCATION)){
+                Toast.makeText(this, "The permission to get BLE location data is required", Toast.LENGTH_SHORT).show();
+            }else{
+                requestPermissions(new String[]{Manifest.permission.ACCESS_COARSE_LOCATION, Manifest.permission.ACCESS_FINE_LOCATION}, 1);
+            }
+        }else{
+            Toast.makeText(this, "Location permissions already granted", Toast.LENGTH_SHORT).show();
+        }
 
         mHandler = new Handler();
 
@@ -92,7 +106,13 @@ public class DeviceScanActivity extends ListActivity {
         }
 
         /**  Check All permissions needed for BLE Scan   */
-        hasPermissions();
+        boolean permissionsGranted = hasPermissions();
+        if(!permissionsGranted){
+            System.out.println("*****   *****   PERMISSIONS HAVE NOT BEEN GRANTED");
+        }
+        else {
+            System.out.println("*****   Permissions have been granted!");
+        }
 
         /** Initializes list view adapter.   */
         mLeDeviceListAdapter = new LeDeviceListAdapter();
@@ -129,7 +149,7 @@ public class DeviceScanActivity extends ListActivity {
         if (enable) {
             mScanning = true;
             helmetBtn = null;
-            settingaBtn = null;
+            settingsBtn = null;
 
             /** Stops scanning after a pre-defined scan period.  */
             if(mRunnable == null) {
@@ -251,7 +271,9 @@ public class DeviceScanActivity extends ListActivity {
 
     /** Checks if GPS is enabled    */
     boolean hasLocationPermission() {
-        return checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == getPackageManager().PERMISSION_GRANTED;
+        boolean fineGPS = checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == getPackageManager().PERMISSION_GRANTED;
+        boolean courseGPS = checkSelfPermission(Manifest.permission.ACCESS_COARSE_LOCATION) == getPackageManager().PERMISSION_GRANTED;
+        return (fineGPS && courseGPS);
     }
 
     /** Attempts to turn on Bluetooth   */
@@ -266,7 +288,7 @@ public class DeviceScanActivity extends ListActivity {
     /** Attempts to turn on GPS    */
     void requestLocationPermission() {
         /**  Force enable GPS access */
-        requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_ENABLE_GPS);
+        requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_ENABLE_GPS);
     }
 
     /** BLE Device scan callback - will only find devices with 'Adafruit' in their name
@@ -279,6 +301,7 @@ public class DeviceScanActivity extends ListActivity {
                         @Override
                         public void run() {
                             if (device.getName() != null) {
+                                System.out.println("*****   Found Bluetooth Device : " + device.getName());
                                 if (device.getName().contains("Adafruit")) {
                                     if(mLeDeviceListAdapter.checkIfExists(device)) {
                                         System.out.println("***** Adding New Device that does not exist : " + device.getName());
@@ -297,7 +320,7 @@ public class DeviceScanActivity extends ListActivity {
         System.out.println("*****   DeviceScanActivity::INITIALIZE_HELMET_BUTTON HAS BEEN CALLED!    *****");
         if(helmetBtn == null){  //  Tries to find the Helmet and Settings button
             helmetBtn = findViewById(R.id.helmet_button);
-            settingaBtn = findViewById(R.id.settings_button);
+            settingsBtn = findViewById(R.id.settings_button);
         }
 
         /** If helmet button was created    */
@@ -321,7 +344,7 @@ public class DeviceScanActivity extends ListActivity {
             });
 
             /** Set Settings buttons onClick Function   */
-            settingaBtn.setOnClickListener(new View.OnClickListener() {
+            settingsBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     System.out.println("*****   SETTINGS BUTTON HAS BEEN CLICKED");
