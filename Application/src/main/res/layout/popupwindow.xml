@@ -16,21 +16,17 @@
 
         <Button
             android:id="@+id/popup_settings_button"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
             android:layout_gravity="start"
             android:background="@drawable/settingsicon"
             android:focusable="false" />
 
-        <Space
-            android:layout_width="269dp"
-            android:layout_height="50dp" />
-
         <Button
             android:id="@+id/close_popup_window"
-            android:layout_width="50dp"
-            android:layout_height="50dp"
-            android:layout_gravity="end"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_marginStart="280dp"
             android:background="#F60"
             android:text="@string/close_popup_btn"
             android:textColor="#FFF"

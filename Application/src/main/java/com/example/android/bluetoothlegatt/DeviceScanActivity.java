@@ -96,7 +96,7 @@ public class DeviceScanActivity extends ListActivity {
         do {
             checkPermissions();
             try {
-                Thread.sleep(2000);
+                Thread.sleep(SCAN_PERIOD);
             } catch (InterruptedException ex) { }
 
         }while(!mPermissions);
@@ -423,15 +423,7 @@ public class DeviceScanActivity extends ListActivity {
         }
         else{   /** If the Helmet button was not created, run the BLE scan once more and it should work!    */
             System.out.println("*****   HELMET & SETTINGS BUTTON = NULL    *****");
-            if(mScanning)
-                scanDevices(false);
-
-            try {
-                Thread.sleep(2000);
-            } catch (InterruptedException ex) { }
-
-            if(!mScanning)
-                scanDevices(true);
+            scanDevices(true);
         }
     }
 
