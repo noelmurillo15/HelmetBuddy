@@ -358,8 +358,9 @@ public class DeviceControlActivity extends Activity {
                     if (toggleSettings) {
                         mTextViewDeviceName.setVisibility(View.VISIBLE);
                         mTextViewDeviceAddress.setVisibility(View.VISIBLE);
-                        mTextViewDeviceName.setText("Device Name : " + mDeviceName);
-                        mTextViewDeviceAddress.setText("Device Name : " + mDeviceAddress);
+                        mTextViewDeviceName.setText(getResources().getString(R.string.device_name) + mDeviceName);
+
+                        mTextViewDeviceAddress.setText(getResources().getString(R.string.device_address) + mDeviceAddress);
                     } else {
                         mTextViewDeviceName.setVisibility(View.INVISIBLE);
                         mTextViewDeviceAddress.setVisibility(View.INVISIBLE);

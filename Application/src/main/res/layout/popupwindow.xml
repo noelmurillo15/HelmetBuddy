@@ -3,36 +3,26 @@
     android:id="@+id/popup"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_margin="10dp"
+    android:layout_margin="20dp"
     android:background="#FFF"
     android:gravity="center"
     android:layout_gravity="center_vertical"
     android:orientation="vertical"
     android:padding="10dp">
 
-    <TableRow
+    <Button
+        android:id="@+id/close_popup_window"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_gravity="end"
+        android:background="#F60"
+        android:text="@string/close_popup_btn"
+        android:textColor="#FFF"
+        android:typeface="normal" />
+
+    <Space
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
-        <Button
-            android:id="@+id/popup_settings_button"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_gravity="start"
-            android:background="@drawable/settingsicon"
-            android:focusable="false" />
-
-        <Button
-            android:id="@+id/close_popup_window"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_marginStart="280dp"
-            android:background="#F60"
-            android:text="@string/close_popup_btn"
-            android:textColor="#FFF"
-            android:typeface="normal" />
-
-    </TableRow>
+        android:layout_height="19dp" />
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -40,27 +30,19 @@
         android:layout_margin="10dp"
         android:orientation="horizontal">
 
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="@string/label_state"
-            android:textStyle="bold"
-            android:typeface="normal"
-            android:textColor="#000"
-            android:textSize="18sp" />
+
+
+        <Button
+            android:id="@+id/popup_settings_button"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="end"
+            android:background="@drawable/info_icon"
+            android:focusable="false" />
 
         <Space
-            android:layout_width="5dp"
+            android:layout_width="20dp"
             android:layout_height="wrap_content" />
-
-        <TextView
-            android:id="@+id/popup_connection_state"
-            android:layout_width="116dp"
-            android:layout_height="wrap_content"
-            android:text="@string/disconnected"
-            android:typeface="normal"
-            android:textColor="#000"
-            android:textSize="18sp" />
 
         <Button
             android:id="@+id/UnlockLock"
@@ -69,23 +51,57 @@
             android:background="#F60"
             android:gravity="bottom|center|top"
             android:text="@string/unlock_this_helmet"
-            android:typeface="normal"
-            android:textColor="#FFF"/>
+            android:textColor="#FFF"
+            android:typeface="normal" />
 
     </LinearLayout>
 
-    <TextView android:id="@+id/popup_device_name"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:text="Device Name : "
-    android:typeface="normal"
-    android:textSize="20dp"/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="12dp"
+        android:orientation="vertical"
+        android:visibility="visible">
 
-    <TextView android:id="@+id/popup_device_address"
-    android:layout_width="match_parent"
-    android:layout_height="wrap_content"
-    android:text="Device Address : "
-    android:typeface="normal"
-    android:textSize="14dp"/>
+
+        <TextView
+            android:id="@+id/popup_device_name"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/device_name"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:typeface="normal" />
+
+        <TextView
+            android:id="@+id/popup_device_address"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/device_address"
+            android:textSize="14sp"
+            android:textStyle="bold"
+            android:typeface="normal" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/label_state"
+            android:textColor="#000"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            android:typeface="normal" />
+
+        <TextView
+            android:id="@+id/popup_connection_state"
+            android:layout_width="116dp"
+            android:layout_height="wrap_content"
+            android:text="@string/disconnected"
+            android:textColor="#000"
+            android:textSize="18sp"
+            android:typeface="normal" />
+
+
+    </LinearLayout>
+
 
 </LinearLayout>

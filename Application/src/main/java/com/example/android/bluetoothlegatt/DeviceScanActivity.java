@@ -1,11 +1,13 @@
 package com.example.android.bluetoothlegatt;
 
 import android.Manifest;
+import android.app.AlertDialog;
 import android.app.ListActivity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
@@ -93,13 +95,7 @@ public class DeviceScanActivity extends ListActivity {
         System.out.println("*****   DeviceScanActivity::ON_RESUME HAS BEEN CALLED!    *****");
 
         /**  Check All permissions needed for BLE Scan   */
-        do {
-            checkPermissions();
-            try {
-                Thread.sleep(SCAN_PERIOD);
-            } catch (InterruptedException ex) { }
-
-        }while(!mPermissions);
+        checkPermissions();
 
         /** Initializes list view adapter.   */
         if(mLeDeviceListAdapter == null) {
@@ -108,7 +104,8 @@ public class DeviceScanActivity extends ListActivity {
         }
 
         /**  Start Initial Scan  */
-        scanDevices(true);
+        if(hasPermissions())
+            scanDevices(true);
     }
     @Override
     protected void onPause() {
@@ -137,7 +134,7 @@ public class DeviceScanActivity extends ListActivity {
         if (!hasPermissions()) {
             if (!mRequestLoactionActive && !mRequestBTActive && !hasGPSActive()) {
                 System.out.println("*****   requestGPS has been called!");
-                requestGPS();
+                ShowSettingsAlert();
                 return;
             }
             mGpsScreenActive = false;
@@ -376,10 +373,34 @@ public class DeviceScanActivity extends ListActivity {
     }
     /** Asks user to turn on GPS    */
     void requestGPS(){
-        if(!mGpsScreenActive && !hasGPSActive()) {
+        if(mGpsScreenActive && !hasGPSActive()) {
             System.out.println("*****   FORCING requestGPS");
-            mGpsScreenActive = true;
             startActivityForResult(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), REQUEST_ENABLE_GPS);
+        }
+    }
+
+    void ShowSettingsAlert(){
+        if(!mGpsScreenActive) {
+            mGpsScreenActive = true;
+            AlertDialog.Builder alertDialog = new AlertDialog.Builder(this);
+            alertDialog.setTitle("Error - GPS is needed for this App");
+            alertDialog.setMessage("Please press Ok to enable GPS.");
+            alertDialog.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    System.out.println("Clicked OK");
+                    requestGPS();
+                }
+            });
+            alertDialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
+                @Override
+                public void onClick(DialogInterface dialog, int which) {
+                    System.out.println("Clicked No");
+                    finish();System.exit(0);
+                }
+            });
+
+            alertDialog.show();
         }
     }
 
