@@ -1,14 +1,10 @@
 package com.example.android.bluetoothlegatt;
 
 import android.Manifest;
-import android.app.Activity;
 import android.app.ListActivity;
 import android.bluetooth.BluetoothAdapter;
 import android.bluetooth.BluetoothDevice;
 import android.bluetooth.BluetoothManager;
-import android.bluetooth.le.BluetoothLeScanner;
-import android.bluetooth.le.ScanCallback;
-import android.bluetooth.le.ScanResult;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -24,7 +20,7 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.util.ArrayList;
-import java.util.List;
+
 
 /** Activity for scanning and displaying available Bluetooth LE devices.    */
 public class DeviceScanActivity extends ListActivity {
@@ -96,21 +92,6 @@ public class DeviceScanActivity extends ListActivity {
         super.onResume();
         System.out.println("*****   DeviceScanActivity::ON_RESUME HAS BEEN CALLED!    *****");
 
-        /** Ensures Bluetooth is enabled on the device.  If Bluetooth is not currently enabled,
-         fire an intent to display a dialog asking the user to grant permission to enable it. */
-        if (!mBluetoothAdapter.isEnabled()) {
-            if (!mBluetoothAdapter.isEnabled()) {
-                Intent enableBtIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
-                startActivityForResult(enableBtIntent, REQUEST_ENABLE_BT);
-            }
-        }
-
-        /** Initializes list view adapter.   */
-        if(mLeDeviceListAdapter == null) {
-            mLeDeviceListAdapter = new LeDeviceListAdapter();
-            setListAdapter(mLeDeviceListAdapter);
-        }
-
         /**  Check All permissions needed for BLE Scan   */
         do {
             checkPermissions();
@@ -119,6 +100,12 @@ public class DeviceScanActivity extends ListActivity {
             } catch (InterruptedException ex) { }
 
         }while(!mPermissions);
+
+        /** Initializes list view adapter.   */
+        if(mLeDeviceListAdapter == null) {
+            mLeDeviceListAdapter = new LeDeviceListAdapter();
+            setListAdapter(mLeDeviceListAdapter);
+        }
 
         /**  Start Initial Scan  */
         scanDevices(true);
@@ -145,6 +132,7 @@ public class DeviceScanActivity extends ListActivity {
     }
     /** END : ACTIVITY OVERRIDES    */
 
+    /** Check for All Permissions   */
     void checkPermissions() {
         if (!hasPermissions()) {
             if (!mRequestLoactionActive && !mRequestBTActive && !hasGPSActive()) {
@@ -171,12 +159,11 @@ public class DeviceScanActivity extends ListActivity {
         mPermissions = true;
     }
 
-    /** Bluetooth Scan for devices - specifically looking for devices named 'Adafruit'    */
+    /** DEPRECATED : Bluetooth Scan for devices - specifically looking for devices named 'Adafruit'    */
     public void scanDevices(final boolean enable) {
         System.out.println("*****   DeviceScanActivity::SCAN_DEVICES HAS BEEN CALLED!    *****");
 
         if (enable) {
-
             mScanning = true;
             helmetBtn = null;
             settingsBtn = null;
@@ -203,6 +190,7 @@ public class DeviceScanActivity extends ListActivity {
         }
         invalidateOptionsMenu();
     }
+    /** Bluetooth Scan Callback Override    */
     BluetoothAdapter.LeScanCallback mScanCallback =
             new BluetoothAdapter.LeScanCallback() {
                 /** BLE Device scan callback - will only find devices with 'Adafruit' in their name
@@ -215,7 +203,6 @@ public class DeviceScanActivity extends ListActivity {
                             if (device.getName() != null) {
                                 if (device.getName().contains("Adafruit")) {
                                     if(mLeDeviceListAdapter.checkIfExists(device)) {
-                                        System.out.println("***** Adding New Device that does not exist : " + device.getName());
                                         mLeDeviceListAdapter.addDevice(device);
                                     }
                                 }
@@ -226,43 +213,43 @@ public class DeviceScanActivity extends ListActivity {
             };
 
 
-    /** Bluetooth Le Scan for devices   */
-    public void scanLeDevices(final boolean enable){
-        System.out.println("*****   DeviceScanActivity::SCAN_LE_DEVICES HAS BEEN CALLED!    *****");
-
-        final BluetoothLeScanner bluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
-
-        if(enable){
-            mHandler.postDelayed(new Runnable() {
-                @Override
-                public void run() {
-                    mScanning = false;
-                    bluetoothLeScanner.stopScan(mLeScanCallback);
-                }
-            }, SCAN_PERIOD);
-
-            mScanning = true;
-            bluetoothLeScanner.startScan(mLeScanCallback);
-        }
-        else{
-            mScanning = false;
-            bluetoothLeScanner.stopScan(mLeScanCallback);
-        }
-    }
-    ScanCallback mLeScanCallback = new ScanCallback() {
-        @Override
-        public void onScanResult(int callbackType, ScanResult result) {
-            super.onScanResult(callbackType, result);
-        }
-        @Override
-        public void onBatchScanResults(List<ScanResult> results) {
-            super.onBatchScanResults(results);
-        }
-        @Override
-        public void onScanFailed(int errorCode) {
-            super.onScanFailed(errorCode);
-        }
-    };
+    /** API 23+ : Bluetooth Le Scan for devices   */
+//    public void scanLeDevices(final boolean enable){
+//        System.out.println("*****   DeviceScanActivity::SCAN_LE_DEVICES HAS BEEN CALLED!    *****");
+//
+//        final BluetoothLeScanner bluetoothLeScanner = mBluetoothAdapter.getBluetoothLeScanner();
+//
+//        if(enable){
+//            mHandler.postDelayed(new Runnable() {
+//                @Override
+//                public void run() {
+//                    mScanning = false;
+//                    bluetoothLeScanner.stopScan(mLeScanCallback);
+//                }
+//            }, SCAN_PERIOD);
+//
+//            mScanning = true;
+//            bluetoothLeScanner.startScan(mLeScanCallback);
+//        }
+//        else{
+//            mScanning = false;
+//            bluetoothLeScanner.stopScan(mLeScanCallback);
+//        }
+//    }
+//    ScanCallback mLeScanCallback = new ScanCallback() {
+//        @Override
+//        public void onScanResult(int callbackType, ScanResult result) {
+//            super.onScanResult(callbackType, result);
+//        }
+//        @Override
+//        public void onBatchScanResults(List<ScanResult> results) {
+//            super.onBatchScanResults(results);
+//        }
+//        @Override
+//        public void onScanFailed(int errorCode) {
+//            super.onScanFailed(errorCode);
+//        }
+//    };
 
 
 
@@ -436,13 +423,15 @@ public class DeviceScanActivity extends ListActivity {
         }
         else{   /** If the Helmet button was not created, run the BLE scan once more and it should work!    */
             System.out.println("*****   HELMET & SETTINGS BUTTON = NULL    *****");
-            scanDevices(false);
+            if(mScanning)
+                scanDevices(false);
 
             try {
                 Thread.sleep(2000);
             } catch (InterruptedException ex) { }
 
-            scanDevices(true);
+            if(!mScanning)
+                scanDevices(true);
         }
     }
 

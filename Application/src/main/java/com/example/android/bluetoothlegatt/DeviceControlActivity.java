@@ -42,13 +42,19 @@ public class DeviceControlActivity extends Activity {
     /** Lock Status */
     boolean locked = false;
     boolean connected = false;
+    boolean toggleSettings;
 
     /** Popup Window Buttons    */
     Button unlocklock;
     Button popupclose;
+    Button popup_settings;
 
     //TextView mConnectionState;
     //TextView mDataField;
+
+    TextView mTextViewDeviceName;
+    TextView mTextViewDeviceAddress;
+
     String mDeviceName;
     String mDeviceAddress;
     ExpandableListView mGattServicesList;
@@ -80,6 +86,8 @@ public class DeviceControlActivity extends Activity {
 
         mGattServicesList = findViewById(R.id.gatt_services_list);
         mGattServicesList.setOnChildClickListener(servicesListClickListner);
+
+        toggleSettings = false;
 
         Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
@@ -332,6 +340,32 @@ public class DeviceControlActivity extends Activity {
             /** Create & Show Popup window  */
             popupWindow = new PopupWindow(popupView, width, height, false);
             setContentView(R.layout.popupwindow);
+
+            popup_settings = findViewById(R.id.popup_settings_button);
+            mTextViewDeviceName = findViewById(R.id.popup_device_name);
+            mTextViewDeviceAddress = findViewById(R.id.popup_device_address);
+
+            popup_settings.setVisibility(View.VISIBLE);
+            mTextViewDeviceName.setVisibility(View.INVISIBLE);
+            mTextViewDeviceAddress.setVisibility(View.INVISIBLE);
+
+            /** Set Settings button onClick Function   */
+            popup_settings.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    System.out.println("*****   POPUP SETTINGS BUTTON HAS BEEN CLICKED");
+                    toggleSettings = !toggleSettings;
+                    if (toggleSettings) {
+                        mTextViewDeviceName.setVisibility(View.VISIBLE);
+                        mTextViewDeviceAddress.setVisibility(View.VISIBLE);
+                        mTextViewDeviceName.setText("Device Name : " + mDeviceName);
+                        mTextViewDeviceAddress.setText("Device Name : " + mDeviceAddress);
+                    } else {
+                        mTextViewDeviceName.setVisibility(View.INVISIBLE);
+                        mTextViewDeviceAddress.setVisibility(View.INVISIBLE);
+                    }
+                }
+            });
         }
 
         /** Popup UI references */

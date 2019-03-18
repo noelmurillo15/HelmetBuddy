@@ -10,16 +10,33 @@
     android:orientation="vertical"
     android:padding="10dp">
 
-    <Button
-        android:id="@+id/close_popup_window"
-        android:layout_width="30dp"
-        android:layout_height="30dp"
-        android:background="#F60"
-        android:gravity="center"
-        android:text="@string/close_popup_btn"
-        android:textColor="#FFF"
-        android:typeface="normal"
-        android:layout_gravity="end"/>
+    <TableRow
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/popup_settings_button"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="start"
+            android:background="@drawable/settingsicon"
+            android:focusable="false" />
+
+        <Space
+            android:layout_width="269dp"
+            android:layout_height="50dp" />
+
+        <Button
+            android:id="@+id/close_popup_window"
+            android:layout_width="50dp"
+            android:layout_height="50dp"
+            android:layout_gravity="end"
+            android:background="#F60"
+            android:text="@string/close_popup_btn"
+            android:textColor="#FFF"
+            android:typeface="normal" />
+
+    </TableRow>
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -59,13 +76,20 @@
             android:typeface="normal"
             android:textColor="#FFF"/>
 
-        <!--<TextView-->
-            <!--android:id="@+id/popup_lock_status"-->
-            <!--android:layout_width="match_parent"-->
-            <!--android:layout_height="wrap_content"-->
-            <!--android:text="@string/unlock"-->
-            <!--android:textColor="#000"-->
-            <!--android:textSize="18sp" />-->
     </LinearLayout>
+
+    <TextView android:id="@+id/popup_device_name"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="Device Name : "
+    android:typeface="normal"
+    android:textSize="20dp"/>
+
+    <TextView android:id="@+id/popup_device_address"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:text="Device Address : "
+    android:typeface="normal"
+    android:textSize="14dp"/>
 
 </LinearLayout>
