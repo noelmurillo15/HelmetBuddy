@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+
 /** For a given BLE device, this Activity provides the user interface to connect, display data,
  * and display GATT services and characteristics supported by the device.  The Activity
  * communicates with {@code BluetoothLeService}, which in turn interacts with the
@@ -35,26 +36,24 @@ public class DeviceControlActivity extends Activity {
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
 
     /** Popup UI    */
+    View popupView;
+    PopupWindow popupWindow;
+    LinearLayout popup_settings_window;
+
+    TextView mTextViewDeviceName;
     TextView mPopupConnectionState;
-    //TextView mPopupDataField;
-    //TextView mPopupDeviceName;
+    TextView mTextViewDeviceAddress;
+
+    Button unlocklock;
+    Button popupclose;
+    Button popup_settings;
 
     /** Lock Status */
     boolean locked = false;
     boolean connected = false;
     boolean toggleSettings;
 
-    /** Popup Window Buttons    */
-    Button unlocklock;
-    Button popupclose;
-    Button popup_settings;
-
-    //TextView mConnectionState;
-    //TextView mDataField;
-
-    TextView mTextViewDeviceName;
-    TextView mTextViewDeviceAddress;
-
+    /** Bluetooth Device vars*/
     String mDeviceName;
     String mDeviceAddress;
     ExpandableListView mGattServicesList;
@@ -62,9 +61,6 @@ public class DeviceControlActivity extends Activity {
     ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics = new ArrayList<>();
     boolean mConnected = false;
     BluetoothGattCharacteristic mNotifyCharacteristic;
-
-    PopupWindow popupWindow;
-    View popupView;
 
     final String LIST_NAME = "NAME";
     final String LIST_UUID = "UUID";
@@ -342,12 +338,12 @@ public class DeviceControlActivity extends Activity {
             setContentView(R.layout.popupwindow);
 
             popup_settings = findViewById(R.id.popup_settings_button);
+            popup_settings_window = findViewById(R.id.info_popup_window);
+
             mTextViewDeviceName = findViewById(R.id.popup_device_name);
             mTextViewDeviceAddress = findViewById(R.id.popup_device_address);
 
-            popup_settings.setVisibility(View.VISIBLE);
-            mTextViewDeviceName.setVisibility(View.INVISIBLE);
-            mTextViewDeviceAddress.setVisibility(View.INVISIBLE);
+            popup_settings_window.setVisibility(View.GONE);
 
             /** Set Settings button onClick Function   */
             popup_settings.setOnClickListener(new View.OnClickListener() {
@@ -356,14 +352,13 @@ public class DeviceControlActivity extends Activity {
                     System.out.println("*****   POPUP SETTINGS BUTTON HAS BEEN CLICKED");
                     toggleSettings = !toggleSettings;
                     if (toggleSettings) {
-                        mTextViewDeviceName.setVisibility(View.VISIBLE);
-                        mTextViewDeviceAddress.setVisibility(View.VISIBLE);
-                        mTextViewDeviceName.setText(getResources().getString(R.string.device_name) + mDeviceName);
+                        popup_settings_window.setVisibility(View.VISIBLE);
 
-                        mTextViewDeviceAddress.setText(getResources().getString(R.string.device_address) + mDeviceAddress);
+                        mTextViewDeviceName.setText(getResources().getString(R.string.device_name) + " " +mDeviceName);
+
+                        mTextViewDeviceAddress.setText(getResources().getString(R.string.device_address) + " " +mDeviceAddress);
                     } else {
-                        mTextViewDeviceName.setVisibility(View.INVISIBLE);
-                        mTextViewDeviceAddress.setVisibility(View.INVISIBLE);
+                        popup_settings_window.setVisibility(View.GONE);
                     }
                 }
             });

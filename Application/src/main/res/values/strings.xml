@@ -9,8 +9,8 @@
     <string name="label_device_address">Device address:</string>
     <string name="label_state">Status : </string>
     <string name="no_data">No data</string>
-    <string name="connected">Connected</string>
-    <string name="disconnected">Disconnected</string>
+    <string name="connected"> Connected</string>
+    <string name="disconnected"> Disconnected</string>
     <string name="title_devices">BLE Device Scan</string>
 
     <!--Unknowns-->
