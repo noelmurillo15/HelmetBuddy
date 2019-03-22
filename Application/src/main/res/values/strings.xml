@@ -33,5 +33,7 @@
     <string name="close_popup_btn">X</string>
     <string name="device_name">Device Name : </string>
     <string name="device_address">Device Address : </string>
+    <string name="empty"> </string>
+
 
 </resources>

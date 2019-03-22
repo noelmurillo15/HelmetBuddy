@@ -65,7 +65,6 @@ public class DeviceControlActivity extends Activity {
     final String LIST_NAME = "NAME";
     final String LIST_UUID = "UUID";
 
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -118,6 +117,7 @@ public class DeviceControlActivity extends Activity {
         public void onServiceDisconnected(ComponentName componentName) {
             System.out.println("*****   DeviceControlActivity::onServiceDisconnected CALLED!   *****");
             mBluetoothLeService = null;
+            System.exit(0);
         }
     };
 
@@ -141,15 +141,24 @@ public class DeviceControlActivity extends Activity {
                 updateConnectionState(R.string.connected);
                 invalidateOptionsMenu();
             } else if (BluetoothLeService.ACTION_GATT_DISCONNECTED.equals(action)) {
+                System.out.println("*****   on::Disconnected");
+                unregisterReceiver(mGattUpdateReceiver);
                 if (popupWindow != null) {
                     popupWindow.dismiss();
                     popupWindow = null;
-                    System.out.println("*****   Dismissing the popup window");
+                    popup_settings_window.setVisibility(View.GONE);
+                    mTextViewDeviceName.setText(R.string.empty);
+                    mPopupConnectionState.setText(R.string.empty);
+                    mTextViewDeviceAddress.setText(R.string.empty);
                 }
+                mDeviceName = "";
+                mDeviceAddress = "";
                 mConnected = false;
                 updateConnectionState(R.string.disconnected);
                 invalidateOptionsMenu();
                 clearUI();
+                mBluetoothLeService = null;
+                System.exit(0);
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 /** Show all the supported services and characteristics on the user interface   */
                 displayGattServices(mBluetoothLeService.getSupportedGattServices());
@@ -215,8 +224,6 @@ public class DeviceControlActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         System.out.println("*****   DeviceControlActivity::onDestroy CALLED!   *****");
-        unbindService(mServiceConnection);
-        mBluetoothLeService = null;
     }
 
     void updateConnectionState(final int resourceId) {
