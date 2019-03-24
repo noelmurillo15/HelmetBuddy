@@ -10,6 +10,7 @@ import android.bluetooth.BluetoothManager;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.location.LocationManager;
 import android.os.Bundle;
@@ -20,6 +21,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 import java.util.ArrayList;
@@ -40,11 +42,12 @@ public class DeviceScanActivity extends ListActivity {
 
     /**  Buttons for UI */
     Button helmetBtn;
-//    Button settingsBtn;
 
     /**  Handler for BLE_ScanCallback   */
     Handler mHandler;
     Runnable mRunnable;
+
+    RelativeLayout progressCircle;
 
     /**  Permission Requests    */
     final int REQUEST_ENABLE_BT = 99;
@@ -55,13 +58,13 @@ public class DeviceScanActivity extends ListActivity {
     static final long SCAN_PERIOD = 750;
 
 
-    //  TODO : if I create helmet icon and turn off bt and gps and click helmet icon, helmet icon will disappear abd will not continue to scan for devices
-
     /** START : ACTIVITY OVERRIDES  */
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         System.out.println("*****   DeviceScanActivity::onCreate HAS BEEN CALLED!    *****");
+
+        setRequestedOrientation (ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
         /**  Sets the background photo & hides action bar   */
         getWindow().getDecorView().setBackground(getResources().getDrawable(R.drawable.spinbg));
@@ -72,6 +75,8 @@ public class DeviceScanActivity extends ListActivity {
         mGpsScreenActive = false;
         mPermissions = false;
         mHandler = new Handler();
+
+        progressCircle = findViewById(R.id.loadingPanel);
 
         /** Use this check to determine whether BLE is supported on the device.  Then you can
             selectively disable BLE-related features.    */
@@ -95,7 +100,7 @@ public class DeviceScanActivity extends ListActivity {
     @Override
     protected void onResume() {
         super.onResume();
-//        System.out.println("*****   DeviceScanActivity::ON_RESUME HAS BEEN CALLED!    *****");
+        System.out.println("*****   DeviceScanActivity::ON_RESUME HAS BEEN CALLED!    *****");
 
         /**  Check All permissions needed for BLE Scan   */
         checkPermissions();
@@ -113,10 +118,7 @@ public class DeviceScanActivity extends ListActivity {
     @Override
     protected void onPause() {
         super.onPause();
-//        System.out.println("*****   DeviceScanActivity::ON_PAUSE HAS BEEN CALLED!    *****");
-//        if(mScanning) {
-//            scanDevices(false);
-//        }
+        System.out.println("*****   DeviceScanActivity::ON_PAUSE HAS BEEN CALLED!    *****");
         mGpsScreenActive = false;
         mPermissions = false;
         mRequestBTActive = false;
@@ -126,8 +128,7 @@ public class DeviceScanActivity extends ListActivity {
     @Override
     public void onBackPressed(){
         super.onBackPressed();
-//        System.out.println("*****   DeviceScanActivity::ON_BACK_PRESSED HAS BEEN CALLED!    *****");
-//        scanDevices(false);
+        System.out.println("*****   DeviceScanActivity::ON_BACK_PRESSED HAS BEEN CALLED!    *****");
         checkPermissions();
     }
     @Override
@@ -185,10 +186,14 @@ public class DeviceScanActivity extends ListActivity {
     public void scanDevices(final boolean enable) {
 //        System.out.println("*****   DeviceScanActivity::SCAN_DEVICES HAS BEEN CALLED : "  + enable + "    *****");
         if (enable) {
+            if(progressCircle == null)
+                progressCircle = findViewById(R.id.loadingPanel);
+
+            if(progressCircle != null)
+                progressCircle.setVisibility(View.VISIBLE);
+
             mScanning = true;
             helmetBtn = null;
-//            settingsBtn = null;
-//            mLeDeviceListAdapter.clear();
 
             /** Stops scanning after a pre-defined scan period  */
             if(mRunnable == null) {
@@ -198,6 +203,13 @@ public class DeviceScanActivity extends ListActivity {
                         mBluetoothAdapter.stopLeScan(mScanCallback);
                         mLeDeviceListAdapter.notifyDataSetChanged();
                         invalidateOptionsMenu();
+
+                        if(progressCircle == null)
+                            progressCircle = findViewById(R.id.loadingPanel);
+
+                        if(progressCircle != null)
+                            progressCircle.setVisibility(View.GONE);
+
                         InitializeHelmetButton();
                     }
                 };
@@ -225,11 +237,11 @@ public class DeviceScanActivity extends ListActivity {
                         @Override
                         public void run() {
                             if (device.getName() != null) {
-                                System.out.println("*****   Found bluetooth device : " + device.getName());
+//                                System.out.println("*****   Found bluetooth device : " + device.getName());
                                 if(device.getName().contains("Adafruit")) {
 //                                    System.out.println("*****   Device is an Adafruit! ");
                                     if (mLeDeviceListAdapter.checkIfExists(device)) {
-                                        System.out.println("*****   Adding Adafruit Device : ");
+//                                        System.out.println("*****   Adding Adafruit Device : ");
                                         mLeDeviceListAdapter.addDevice(device);
                                     }
                                 }
@@ -362,7 +374,7 @@ public class DeviceScanActivity extends ListActivity {
     void requestBluetoothEnable() {
         /** Force enable BT access   */
         if(!mRequestBTActive && !hasBluetoothPermission()) {
-//            System.out.println("*****   FORCING mRequestBTActive");
+            System.out.println("*****   FORCING mRequestBTActive");
             mRequestBTActive = true;
             Intent enableBTIntent = new Intent(BluetoothAdapter.ACTION_REQUEST_ENABLE);
             startActivityForResult(enableBTIntent, REQUEST_ENABLE_BT);
@@ -378,7 +390,7 @@ public class DeviceScanActivity extends ListActivity {
     /** Attempts to turn on Bluetooth   */
     void requestLocationPermission(){
         if(!mRequestLocationActive && !hasLocationPermission()) {
-//            System.out.println("*****   FORCING requestLocationPermission");
+            System.out.println("*****   FORCING requestLocationPermission");
             mRequestLocationActive = true;
             requestPermissions(new String[]{Manifest.permission.ACCESS_FINE_LOCATION, Manifest.permission.ACCESS_COARSE_LOCATION}, REQUEST_ENABLE_LOCATION);
         }
@@ -392,7 +404,7 @@ public class DeviceScanActivity extends ListActivity {
     /** Asks user to turn on GPS    */
     void requestGPS(){
         if(mGpsScreenActive && !hasGPSActive()) {
-//            System.out.println("*****   FORCING requestGPS");
+            System.out.println("*****   FORCING requestGPS");
             startActivityForResult(new Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS), REQUEST_ENABLE_GPS);
         }
     }
@@ -406,14 +418,12 @@ public class DeviceScanActivity extends ListActivity {
             alertDialog.setPositiveButton("Ok", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-//                    System.out.println("Clicked OK");
                     requestGPS();
                 }
             });
             alertDialog.setNegativeButton("No", new DialogInterface.OnClickListener() {
                 @Override
                 public void onClick(DialogInterface dialog, int which) {
-//                    System.out.println("Clicked No");
                     finish();System.exit(0);
                 }
             });
@@ -428,7 +438,6 @@ public class DeviceScanActivity extends ListActivity {
 //        System.out.println("*****   DeviceScanActivity::INITIALIZE_HELMET_BUTTON HAS BEEN CALLED!    *****");
         if(helmetBtn == null){  //  Tries to find the Helmet and Settings button
             helmetBtn = findViewById(R.id.helmet_button);
-//            settingsBtn = findViewById(R.id.settings_button);
         }
 
         /** If helmet & settings button were created    */
@@ -437,7 +446,6 @@ public class DeviceScanActivity extends ListActivity {
             helmetBtn.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-//                    System.out.println("*****   HELMET BUTTON HAS BEEN CLICKED");
                     final BluetoothDevice device = mLeDeviceListAdapter.getDevice(0);
                     if (device == null) return;
                     final Intent intent = new Intent(DeviceScanActivity.this, DeviceControlActivity.class);
@@ -450,17 +458,8 @@ public class DeviceScanActivity extends ListActivity {
                     startActivity(intent);
                 }
             });
-
-            /** TODO : Set Settings button onClick Function   */
-//            settingsBtn.setOnClickListener(new View.OnClickListener() {
-//                @Override
-//                public void onClick(View v) {
-//                    System.out.println("*****   SETTINGS BUTTON HAS BEEN CLICKED");
-//                }
-//            });
         }
         else{   /** If the Helmet button was not created, run the BLE scan once more and it should work!    */
-            System.out.println("*****   RESET SCAN!");
             scanDevices(true);
         }
     }

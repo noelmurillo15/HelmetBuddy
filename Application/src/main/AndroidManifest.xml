@@ -18,6 +18,7 @@
         android:icon="@drawable/helmeticon"
         android:theme="@android:style/Theme.Holo.Light">
         <activity android:name=".DeviceScanActivity"
+            android:screenOrientation="portrait"
             android:label="A+A Helmet Lock">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN"/>
