@@ -65,7 +65,6 @@ public class DeviceControlActivity extends Activity {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
 //        System.out.println("*****   DeviceControlActivity::onCreate CALLED!   *****");
 
         setContentView(R.layout.gatt_services_characteristics);
