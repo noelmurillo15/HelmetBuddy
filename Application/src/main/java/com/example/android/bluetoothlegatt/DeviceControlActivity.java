@@ -12,14 +12,12 @@ import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.os.Bundle;
 import android.os.IBinder;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ExpandableListView;
 import android.widget.LinearLayout;
 import android.widget.PopupWindow;
-import android.widget.SimpleExpandableListAdapter;
 import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -31,8 +29,6 @@ import java.util.List;
  * communicates with {@code BluetoothLeService}, which in turn interacts with the
  * Bluetooth LE API */
 public class DeviceControlActivity extends Activity {
-    final static String TAG = DeviceControlActivity.class.getSimpleName();
-
     public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
 
@@ -45,8 +41,8 @@ public class DeviceControlActivity extends Activity {
     TextView mPopupConnectionState;
     TextView mTextViewDeviceAddress;
 
-    Button unlocklock;
-    Button popupclose;
+    Button unlock_lock;
+    Button popup_close;
     Button popup_settings;
 
     /** Lock Status */
@@ -57,7 +53,6 @@ public class DeviceControlActivity extends Activity {
     /** Bluetooth Device vars*/
     String mDeviceName;
     String mDeviceAddress;
-    ExpandableListView mGattServicesList;
     BluetoothLeService mBluetoothLeService;
     ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics = new ArrayList<>();
     boolean mConnected = false;
@@ -71,7 +66,7 @@ public class DeviceControlActivity extends Activity {
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        System.out.println("*****   DeviceControlActivity::onCreate CALLED!   *****");
+//        System.out.println("*****   DeviceControlActivity::onCreate CALLED!   *****");
 
         setContentView(R.layout.gatt_services_characteristics);
         getActionBar().hide();
@@ -80,10 +75,6 @@ public class DeviceControlActivity extends Activity {
         final Intent intent = getIntent();
         mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
         mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
-
-        mGattServicesList = findViewById(R.id.gatt_services_list);
-        mGattServicesList.setOnChildClickListener(servicesListClickListner);
-
         toggleSettings = false;
 
         Intent gattServiceIntent = new Intent(this, BluetoothLeService.class);
@@ -93,11 +84,11 @@ public class DeviceControlActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
-        System.out.println("*****   DeviceControlActivity::onResume CALLED!   *****");
+//        System.out.println("*****   DeviceControlActivity::onResume CALLED!   *****");
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
         if (mBluetoothLeService != null) {
             final boolean result = mBluetoothLeService.connect(mDeviceAddress);
-            Log.d(TAG, "Connect request result=" + result);
+//            Log.d(TAG, "Connect request result=" + result);
         }
     }
 
@@ -105,10 +96,10 @@ public class DeviceControlActivity extends Activity {
     final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder service) {
-            System.out.println("*****   DeviceControlActivity::onServiceConnected CALLED!   *****");
+//            System.out.println("*****   DeviceControlActivity::onServiceConnected CALLED!   *****");
             mBluetoothLeService = ((BluetoothLeService.LocalBinder) service).getService();
             if (!mBluetoothLeService.initialize()) {
-                Log.e(TAG, "Unable to initialize Bluetooth");
+                System.out.println("*****   SYSTEM FINISH::onServiceConnected - Unable to initialize Bluetooth *****");
                 finish();
             }
             /** Automatically connects to the device upon successful start-up initialization */
@@ -117,7 +108,7 @@ public class DeviceControlActivity extends Activity {
 
         @Override
         public void onServiceDisconnected(ComponentName componentName) {
-            System.out.println("*****   DeviceControlActivity::onServiceDisconnected CALLED!   *****");
+            System.out.println("*****   SYSTEM EXIT::onServiceDisconnected *****");
             mBluetoothLeService = null;
             System.exit(0);
         }
@@ -132,10 +123,10 @@ public class DeviceControlActivity extends Activity {
     final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            System.out.println("*****   DeviceControlActivity::onReceive CALLED!   *****");
+//            System.out.println("*****   DeviceControlActivity::onReceive CALLED!   *****");
             final String action = intent.getAction();
             if (BluetoothLeService.ACTION_GATT_CONNECTED.equals(action)) {
-                System.out.println("*****   Creating the popup window");
+//                System.out.println("*****   Creating the popup window");
                 if (popupWindow == null) {
                     showPopUp(DeviceControlActivity.this);
                 }
@@ -146,12 +137,13 @@ public class DeviceControlActivity extends Activity {
                 if (popupWindow != null) {
                     popupWindow.dismiss();
                     popupWindow = null;
-                    System.out.println("*****   Dismissing the popup window");
+//                    System.out.println("*****   Dismissing the popup window");
                 }
                 mConnected = false;
                 updateConnectionState(R.string.disconnected);
                 invalidateOptionsMenu();
                 clearUI();
+                System.out.println("*****   SYSTEM EXIT::onBluetoothActionDisconnected *****");
                 System.exit(0);
             } else if (BluetoothLeService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 /** Show all the supported services and characteristics on the user interface   */
@@ -163,7 +155,8 @@ public class DeviceControlActivity extends Activity {
             if(BluetoothAdapter.ACTION_STATE_CHANGED.equals(intent.getAction())){
                 if(intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1)
                         == BluetoothAdapter.STATE_OFF){
-                    System.out.println("*****   DeviceControlActivity::onReceive::Bt Turned OFF!   *****");
+//                    System.out.println("*****   DeviceControlActivity::onReceive::Bt Turned OFF!   *****");
+                    System.out.println("*****   SYSTEM EXIT::onBluetoothDisabled *****");
                     System.exit(0);
                 }
             }
@@ -177,7 +170,7 @@ public class DeviceControlActivity extends Activity {
                 @Override
                 public boolean onChildClick(ExpandableListView parent, View v, int groupPosition,
                                             int childPosition, long id) {
-                    System.out.println("*****   DeviceControlActivity::onChildClick CALLED!   *****");
+//                    System.out.println("*****   DeviceControlActivity::onChildClick CALLED!   *****");
                     if (mGattCharacteristics != null) {
                         final BluetoothGattCharacteristic characteristic =
                                 mGattCharacteristics.get(groupPosition).get(childPosition);
@@ -202,28 +195,27 @@ public class DeviceControlActivity extends Activity {
             };
 
     void clearUI() {
-        System.out.println("*****   DeviceControlActivity::clearUI CALLED!   *****");
-        mGattServicesList.setAdapter((SimpleExpandableListAdapter) null);
+//        System.out.println("*****   DeviceControlActivity::clearUI CALLED!   *****");
 //        mDataField.setText(R.string.no_data);
     }
 
     @Override
     protected void onPause() {
         super.onPause();
-        System.out.println("*****   DeviceControlActivity::onPause CALLED!   *****");
+//        System.out.println("*****   DeviceControlActivity::onPause CALLED!   *****");
         unregisterReceiver(mGattUpdateReceiver);
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        System.out.println("*****   DeviceControlActivity::onDestroy CALLED!   *****");
+//        System.out.println("*****   DeviceControlActivity::onDestroy CALLED!   *****");
         unbindService(mServiceConnection);
         mBluetoothLeService = null;
     }
 
     void updateConnectionState(final int resourceId) {
-        System.out.println("*****   DeviceControlActivity::updateConnectionState CALLED!   *****");
+//        System.out.println("*****   DeviceControlActivity::updateConnectionState CALLED!   *****");
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -243,7 +235,7 @@ public class DeviceControlActivity extends Activity {
 
     /** Displays the data from Gatt Characteristic  */
     void displayData(String data) {
-        System.out.println("*****   DeviceControlActivity::displayData CALLED!   *****");
+//        System.out.println("*****   DeviceControlActivity::displayData CALLED!   *****");
         if (data != null) {
 //            mDataField.setText(data);
         }
@@ -253,7 +245,7 @@ public class DeviceControlActivity extends Activity {
     In this sample, we populate the data structure that is bound to the ExpandableListView
     on the UI    */
     void displayGattServices(List<BluetoothGattService> gattServices) {
-        System.out.println("*****   DeviceControlActivity::displayGattServices CALLED!   *****");
+//        System.out.println("*****   DeviceControlActivity::displayGattServices CALLED!   *****");
         if (gattServices == null) return;
         String uuid;
         String unknownServiceString = getResources().getString(R.string.unknown_service);
@@ -292,23 +284,10 @@ public class DeviceControlActivity extends Activity {
             mGattCharacteristics.add(charas);
             gattCharacteristicData.add(gattCharacteristicGroupData);
         }
-
-        SimpleExpandableListAdapter gattServiceAdapter = new SimpleExpandableListAdapter(
-                this,
-                gattServiceData,
-                android.R.layout.simple_expandable_list_item_2,
-                new String[]{LIST_NAME, LIST_UUID},
-                new int[]{android.R.id.text1, android.R.id.text2},
-                gattCharacteristicData,
-                android.R.layout.simple_expandable_list_item_2,
-                new String[]{LIST_NAME, LIST_UUID},
-                new int[]{android.R.id.text1, android.R.id.text2}
-        );
-        mGattServicesList.setAdapter(gattServiceAdapter);
     }
 
     static IntentFilter makeGattUpdateIntentFilter() {
-        System.out.println("*****   DeviceControlActivity::makeGattUpdateIntentFilter CALLED!   *****");
+//        System.out.println("*****   DeviceControlActivity::makeGattUpdateIntentFilter CALLED!   *****");
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_CONNECTED);
         intentFilter.addAction(BluetoothLeService.ACTION_GATT_DISCONNECTED);
@@ -320,7 +299,7 @@ public class DeviceControlActivity extends Activity {
     /** Initializes the popup window if it has never been created
         & finds the references for the UI   */
     public void showPopUp(Context context) {
-        System.out.println("*****   DeviceControlActivity::showPopUp CALLED!   *****");
+//        System.out.println("*****   DeviceControlActivity::showPopUp CALLED!   *****");
         if (popupWindow == null) {
             /** Popup View    */
             LinearLayout viewGroup = findViewById(R.id.popup);
@@ -346,7 +325,7 @@ public class DeviceControlActivity extends Activity {
             popup_settings.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    System.out.println("*****   POPUP SETTINGS BUTTON HAS BEEN CLICKED");
+//                    System.out.println("*****   POPUP SETTINGS BUTTON HAS BEEN CLICKED");
                     toggleSettings = !toggleSettings;
                     if (toggleSettings) {
                         popup_settings_window.setVisibility(View.VISIBLE);
@@ -361,19 +340,19 @@ public class DeviceControlActivity extends Activity {
 
         /** Popup UI references */
         mPopupConnectionState = findViewById(R.id.DisconnectedText);
-        unlocklock = findViewById(R.id.UnlockLock);
-        popupclose = findViewById(R.id.close_popup_window);
+        unlock_lock = findViewById(R.id.UnlockLock);
+        popup_close = findViewById(R.id.close_popup_window);
         locked = false;
         ToggleLock();
 
         /** Setup Button onClick Listeners  */
-        unlocklock.setOnClickListener(new View.OnClickListener() {
+        unlock_lock.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 ToggleLock();
             }
         });
-        popupclose.setOnClickListener(new View.OnClickListener() {
+        popup_close.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 popupWindow.dismiss();
@@ -385,7 +364,7 @@ public class DeviceControlActivity extends Activity {
         try {   /** Unlock Button   */
             ((TextView) findViewById(R.id.UnlockLock)).setText(getResources().getString(R.string.unlock_this_helmet));
         } catch (Exception e) {
-            System.out.println("*****   Failed to find Unlock button by ID");
+//            System.out.println("*****   Failed to find Unlock button by ID");
         }
     }
 

@@ -52,9 +52,7 @@
             android:textColor="#FFF"
             android:typeface="normal" />
 
-
     </LinearLayout>
-
 
     <LinearLayout
         android:id="@+id/info_popup_window"
@@ -87,7 +85,6 @@
                 android:typeface="normal" />
 
         </LinearLayout>
-
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -136,9 +133,5 @@
             android:typeface="normal" />
 
         </LinearLayout>
-
-
     </LinearLayout>
-
-
 </LinearLayout>
