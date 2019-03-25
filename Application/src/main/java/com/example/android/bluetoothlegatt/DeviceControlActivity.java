@@ -328,8 +328,8 @@ public class DeviceControlActivity extends Activity {
                     toggleSettings = !toggleSettings;
                     if (toggleSettings) {
                         popup_settings_window.setVisibility(View.VISIBLE);
-                        mTextViewDeviceName.setText(mDeviceName);
-                        mTextViewDeviceAddress.setText(mDeviceAddress);
+                        mTextViewDeviceName.setText(" " + mDeviceName);
+                        mTextViewDeviceAddress.setText(" " + mDeviceAddress);
                     } else {
                         popup_settings_window.setVisibility(View.GONE);
                     }

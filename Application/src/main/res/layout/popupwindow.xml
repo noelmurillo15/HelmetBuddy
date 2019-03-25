@@ -4,18 +4,24 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_margin="20dp"
-    android:background="#FFF"
     android:gravity="center"
     android:layout_gravity="center_vertical"
     android:orientation="vertical"
-    android:padding="10dp">
+    android:padding="10dp"
+    android:background="@drawable/rounded_edge">
+
+    <Space
+        android:layout_width="match_parent"
+        android:layout_height="10dp" />
 
     <Button
         android:id="@+id/close_popup_window"
         android:layout_width="36dp"
         android:layout_height="36dp"
         android:layout_gravity="end"
+        android:layout_marginEnd="10dp"
         android:background="#F60"
+        android:paddingEnd="0dp"
         android:text="@string/close_popup_btn"
         android:textColor="#FFF"
         android:typeface="normal" />
@@ -77,9 +83,10 @@
 
             <TextView
                 android:id="@+id/DisconnectedText"
-                android:text="@string/disconnected"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:layout_marginLeft="5dp"
+                android:text="@string/disconnected"
                 android:textSize="16sp"
                 android:textStyle="normal"
                 android:typeface="normal" />
