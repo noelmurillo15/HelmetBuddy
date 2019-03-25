@@ -26,6 +26,7 @@ import java.util.UUID;
 public class BluetoothLeService extends Service {
     private BluetoothManager mBluetoothManager;
     public BluetoothAdapter mBluetoothAdapter;
+
     private String mBluetoothDeviceAddress;
     private BluetoothGatt mBluetoothGatt;
     private int mConnectionState = STATE_DISCONNECTED;

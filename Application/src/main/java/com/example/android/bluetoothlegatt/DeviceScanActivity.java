@@ -77,8 +77,6 @@ public class DeviceScanActivity extends ListActivity {
         mPermissions = false;
         mHandler = new Handler();
 
-        progressCircle = findViewById(R.id.loadingPanel);
-
         /** Use this check to determine whether BLE is supported on the device.  Then you can
             selectively disable BLE-related features.    */
         if (!getPackageManager().hasSystemFeature(PackageManager.FEATURE_BLUETOOTH_LE)) {
@@ -112,6 +110,8 @@ public class DeviceScanActivity extends ListActivity {
         if(mLeDeviceListAdapter == null) {
             mLeDeviceListAdapter = new LeDeviceListAdapter();
             setListAdapter(mLeDeviceListAdapter);
+            getListView().setDivider(null);
+            getListView().setDividerHeight(0);
         }
 
         /**  Start Initial Scan  */
