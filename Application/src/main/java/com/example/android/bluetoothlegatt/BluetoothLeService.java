@@ -16,7 +16,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.IBinder;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
@@ -44,7 +43,9 @@ public class BluetoothLeService extends Service {
     public final static String ACTION_DATA_AVAILABLE = "com.example.bluetooth.le.ACTION_DATA_AVAILABLE";
     public final static String EXTRA_DATA = "com.example.bluetooth.le.EXTRA_DATA";
 
-    public final static UUID UUID_HELMET_LOCK = UUID.fromString("00000001-0000-1000-8000-00805f9b34fb");
+    public final static UUID UUID_HELMET_LOCK_WRITE = UUID.fromString("6e400002-b5a3-f393-e0a9-e50e24dcca9e");
+    public final static UUID UUID_HELMET_LOCK_READ = UUID.fromString("6e400003-b5a3-f393-e0a9-e50e24dcca9e");
+    protected static final UUID CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
     public final static UUID UUID_HEART_RATE_MEASUREMENT = UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
 
 
@@ -146,8 +147,11 @@ public class BluetoothLeService extends Service {
             final int heartRate = characteristic.getIntValue(format, 1);
 //            Log.d(TAG, String.format("Received heart rate: %d", heartRate));
             intent.putExtra(EXTRA_DATA, String.valueOf(heartRate));
-        } else if(UUID_HELMET_LOCK.equals(characteristic.getUuid())){
-            System.out.println("*   Bluetooth Le Service broadcast update has found Helmet Gatt Characteristic");
+        } else if(UUID_HELMET_LOCK_WRITE.equals(characteristic.getUuid())){
+            System.out.println("*   Bluetooth Le Service broadcast update has found UUID_HELMET_LOCK_WRITE");
+        }
+        else if(UUID_HELMET_LOCK_READ.equals(characteristic.getUuid())){
+            System.out.println("*   Bluetooth Le Service broadcast update has found UUID_HELMET_LOCK_READ");
         }
         else {
             // For all other profiles, writes the data formatted in HEX.
@@ -304,8 +308,6 @@ public class BluetoothLeService extends Service {
 			return;
 		}
 
-		System.out.println("*	characteristic : " + characteristic);
-
 		try{
 			System.out.println("*	Sending converted data to Gatt Server :  " + URLEncoder.encode(data, "utf-8"));
 			characteristic.setValue(URLEncoder.encode(data, "utf-8"));
@@ -330,15 +332,26 @@ public class BluetoothLeService extends Service {
 
         // This is specific to Heart Rate Measurement.
         if (UUID_HEART_RATE_MEASUREMENT.equals(characteristic.getUuid())) {
-            System.out.println("*   HEART RATE UUID");
-            BluetoothGattDescriptor descriptor = characteristic.getDescriptor(
-                    UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
+            BluetoothGattDescriptor descriptor = characteristic.getDescriptor( UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
             descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
             mBluetoothGatt.writeDescriptor(descriptor);
         }
 
-        if(UUID_HELMET_LOCK.equals(characteristic.getUuid())){
-            System.out.println("*   setCharNotification has found Helmet Gatt Characteristic");
+        if(UUID_HELMET_LOCK_WRITE.equals(characteristic.getUuid())){
+            System.out.println("*   setCharNotification has found UUID_HELMET_LOCK_WRITE");
+        }
+
+        if(UUID_HELMET_LOCK_READ.equals(characteristic.getUuid())){
+            System.out.println("*   setCharNotification has found UUID_HELMET_LOCK_READ");
+            BluetoothGattDescriptor descriptor = characteristic.getDescriptor(UUID_HELMET_LOCK_READ);
+            if(descriptor != null) {
+                System.out.println("*   Writing to Notification descriptor");
+                descriptor.setValue(enabled ? BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE : new byte[]{0x00, 0x00});
+                mBluetoothGatt.writeDescriptor(descriptor);
+            }
+            else{
+                System.out.println("*   UUID_HELMET_LOCK_READ descriptor is NULL");
+            }
         }
     }
 
