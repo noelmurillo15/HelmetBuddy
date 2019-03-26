@@ -290,6 +290,23 @@ public class BluetoothLeService extends Service {
         mBluetoothGatt.readCharacteristic(characteristic);
     }
 
+	public void writeCharacteristic(BluetoothGattCharacteristic characteristic, String data){
+	System.out.println("*****   BluetoothLeService::writeCharacteristic");
+		if(mBluetoothAdapter == null || mBluetoothGatt == null){
+			System.out.println("*	Bluetooth Adapter not initialized");
+			return;
+		}
+
+		System.out.println("*	characteristic : " + characteristic);
+		try{
+			System.out.println("*	Converted Data ; " + URLEncoder.encode(data, "utf-8"));
+			characteristic.setValue(URLEncoder.encode(data, "utf-8"));
+			mBluetoothGatt.writeCharacteristic(characteristic);
+		} catch(UnsupportedEncodingException e){
+			e.printStackTrace();
+		}
+	}
+
     /**
      * Enables or disables notification on a give characteristic.
      *
