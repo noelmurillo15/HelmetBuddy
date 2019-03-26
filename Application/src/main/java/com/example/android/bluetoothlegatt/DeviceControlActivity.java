@@ -22,6 +22,7 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.UUID;
 
 
 /** For a given BLE device, this Activity provides the user interface to connect, display data,
@@ -40,6 +41,7 @@ public class DeviceControlActivity extends Activity {
     TextView mTextViewDeviceName;
     TextView mPopupConnectionState;
     TextView mTextViewDeviceAddress;
+    TextView mDataField;
 
     Button unlock_lock;
     Button popup_close;
@@ -57,6 +59,9 @@ public class DeviceControlActivity extends Activity {
     ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics = new ArrayList<>();
     boolean mConnected = false;
     BluetoothGattCharacteristic mNotifyCharacteristic;
+    BluetoothGattCharacteristic mHelmetLockCharacteristic;
+
+
 
     final String LIST_NAME = "NAME";
     final String LIST_UUID = "UUID";
@@ -87,7 +92,7 @@ public class DeviceControlActivity extends Activity {
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
         if (mBluetoothLeService != null) {
             final boolean result = mBluetoothLeService.connect(mDeviceAddress);
-//            Log.d(TAG, "Connect request result=" + result);
+            System.out.println("*   Connect request result=" + result);
         }
     }
 
@@ -152,9 +157,7 @@ public class DeviceControlActivity extends Activity {
             }
 
             if(BluetoothAdapter.ACTION_STATE_CHANGED.equals(intent.getAction())){
-                if(intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1)
-                        == BluetoothAdapter.STATE_OFF){
-//                    System.out.println("*****   DeviceControlActivity::onReceive::Bt Turned OFF!   *****");
+                if(intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1) == BluetoothAdapter.STATE_OFF){
                     System.out.println("*****   SYSTEM EXIT::onBluetoothDisabled *****");
                     System.exit(0);
                 }
@@ -170,32 +173,32 @@ public class DeviceControlActivity extends Activity {
                 public boolean onChildClick(ExpandableListView parent, View v, int groupPosition,
                                             int childPosition, long id) {
 //                    System.out.println("*****   DeviceControlActivity::onChildClick CALLED!   *****");
-                    if (mGattCharacteristics != null) {
-                        final BluetoothGattCharacteristic characteristic =
-                                mGattCharacteristics.get(groupPosition).get(childPosition);
-                        final int charaProp = characteristic.getProperties();
-                        if ((charaProp | BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
-                            /** If there is an active notification on a characteristic, clear
-                                it first so it doesn't update the data field on the user interface   */
-                            if (mNotifyCharacteristic != null) {
-                                mBluetoothLeService.setCharacteristicNotification(mNotifyCharacteristic, false);
-                                mNotifyCharacteristic = null;
-                            }
-                            mBluetoothLeService.readCharacteristic(characteristic);
-                        }
-                        if ((charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
-                            mNotifyCharacteristic = characteristic;
-                            mBluetoothLeService.setCharacteristicNotification(characteristic, true);
-                        }
-                        return true;
-                    }
+//                    if (mGattCharacteristics != null) {
+//                        final BluetoothGattCharacteristic characteristic =
+//                                mGattCharacteristics.get(groupPosition).get(childPosition);
+//                        final int charaProp = characteristic.getProperties();
+//                        if ((charaProp | BluetoothGattCharacteristic.PROPERTY_READ) > 0) {
+//                            /** If there is an active notification on a characteristic, clear
+//                                it first so it doesn't update the data field on the user interface   */
+//                            if (mNotifyCharacteristic != null) {
+//                                mBluetoothLeService.setCharacteristicNotification(mNotifyCharacteristic, false);
+//                                mNotifyCharacteristic = null;
+//                            }
+//                            mBluetoothLeService.readCharacteristic(characteristic);
+//                        }
+//                        if ((charaProp | BluetoothGattCharacteristic.PROPERTY_NOTIFY) > 0) {
+//                            mNotifyCharacteristic = characteristic;
+//                            mBluetoothLeService.setCharacteristicNotification(characteristic, true);
+//                        }
+//                        return true;
+//                    }
                     return false;
                 }
             };
 
     void clearUI() {
 //        System.out.println("*****   DeviceControlActivity::clearUI CALLED!   *****");
-//        mDataField.setText(R.string.no_data);
+        mDataField.setText(R.string.no_data);
     }
 
     @Override
@@ -221,7 +224,7 @@ public class DeviceControlActivity extends Activity {
                 if (mPopupConnectionState != null){
                     mPopupConnectionState.setText(resourceId);
                     if(mPopupConnectionState.getText() == getResources().getString(R.string.disconnected)){
-                        SetLock(true);
+                        setLock(true);
                         connected = false;
                     }
                     else{
@@ -236,7 +239,7 @@ public class DeviceControlActivity extends Activity {
     void displayData(String data) {
 //        System.out.println("*****   DeviceControlActivity::displayData CALLED!   *****");
         if (data != null) {
-//            mDataField.setText(data);
+            mDataField.setText(data);
         }
     }
 
@@ -272,6 +275,21 @@ public class DeviceControlActivity extends Activity {
 
             /** Loops through available Characteristics  */
             for (BluetoothGattCharacteristic gattCharacteristic : gattCharacteristics) {
+                System.out.println("*   Found BLE Characteristic : " + gattCharacteristic.getUuid().toString());
+                if(mBluetoothLeService.UUID_HELMET_LOCK.equals(gattCharacteristic.getUuid())) {
+                    System.out.println("*   Adding Helmet Lock Gatt Service : ");
+
+                    mHelmetLockCharacteristic = gattCharacteristic;
+                    if (mNotifyCharacteristic != null) {
+                        mBluetoothLeService.setCharacteristicNotification(mNotifyCharacteristic, false);
+                        mNotifyCharacteristic = null;
+                    }
+
+                    mNotifyCharacteristic = mHelmetLockCharacteristic;
+                    mBluetoothLeService.writeCharacteristic(mNotifyCharacteristic, "0");
+                    mBluetoothLeService.setCharacteristicNotification(mNotifyCharacteristic, true);
+                }
+
                 charas.add(gattCharacteristic);
                 HashMap<String, String> currentCharaData = new HashMap<>();
                 uuid = gattCharacteristic.getUuid().toString();
@@ -316,6 +334,7 @@ public class DeviceControlActivity extends Activity {
             popup_settings = findViewById(R.id.popup_settings_button);
             popup_settings_window = findViewById(R.id.info_popup_window);
             mTextViewDeviceName = findViewById(R.id.device_name);
+            mDataField = findViewById(R.id.device_data);
             mTextViewDeviceAddress = findViewById(R.id.device_address);
 
             popup_settings_window.setVisibility(View.GONE);
@@ -342,13 +361,13 @@ public class DeviceControlActivity extends Activity {
         unlock_lock = findViewById(R.id.UnlockLock);
         popup_close = findViewById(R.id.close_popup_window);
         locked = false;
-        ToggleLock();
+        toggleLock();
 
         /** Setup Button onClick Listeners  */
         unlock_lock.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                ToggleLock();
+                toggleLock();
             }
         });
         popup_close.setOnClickListener(new View.OnClickListener() {
@@ -369,22 +388,33 @@ public class DeviceControlActivity extends Activity {
 
     /** Changes the Lock/Unlock Button text*/
     void onLockChange(){
+        System.out.println("*****   DeviceControlActivity::onLockChange");
         if(locked){
             ((TextView) findViewById(R.id.UnlockLock)).setText(getResources().getString(R.string.unlock_this_helmet));
+            if(mNotifyCharacteristic != null) {
+                mBluetoothLeService.writeCharacteristic(mNotifyCharacteristic, "0");
+                mDataField.setText("0");
+            }
         }
         else{
             ((TextView) findViewById(R.id.UnlockLock)).setText(getResources().getString(R.string.lock_this_helmet));
+            if(mNotifyCharacteristic != null) {
+                mBluetoothLeService.writeCharacteristic(mNotifyCharacteristic, "1");
+                mDataField.setText("0");
+            }
         }
     }
 
     /** Sets the lock bool  */
-    void SetLock(boolean _b){
+    void setLock(boolean _b){
+        System.out.println("*****   DeviceControlActivity::setLock");
         locked = _b;
         onLockChange();
     }
 
     /** Toggles the lock bool   */
-    void ToggleLock(){
+    void toggleLock(){
+        System.out.println("*****   DeviceControlActivity::toggleLock");
         locked = !locked;
         if(!connected)
             locked = true;

@@ -27,6 +27,7 @@
     <string name="lock_this_helmet">Lock Helmet</string>
     <string name="close_popup_btn">X</string>
     <string name="label_device_name">Device Name : </string>
+    <string name="label_device_data">Device Data : </string>
     <string name="label_device_address">Device Address : </string>
 
 </resources>

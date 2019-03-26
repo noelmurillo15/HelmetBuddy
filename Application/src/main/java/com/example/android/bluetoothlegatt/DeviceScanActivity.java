@@ -243,7 +243,7 @@ public class DeviceScanActivity extends ListActivity {
                         public void run() {
                             if (device.getName() != null) {
 //                                System.out.println("*****   Found bluetooth device : " + device.getName());
-                                if(device.getName().contains("Adafruit")) {
+                                if(device.getName().contains("HelmetLock")) {
 //                                    System.out.println("*****   Device is an Adafruit! ");
                                     if (mLeDeviceListAdapter.checkIfExists(device)) {
                                         System.out.println("*****   Adding Adafruit Device : ");

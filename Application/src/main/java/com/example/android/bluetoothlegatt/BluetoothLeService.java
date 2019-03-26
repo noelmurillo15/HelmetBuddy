@@ -16,6 +16,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.IBinder;
+
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.List;
 import java.util.UUID;
 
@@ -41,6 +44,7 @@ public class BluetoothLeService extends Service {
     public final static String ACTION_DATA_AVAILABLE = "com.example.bluetooth.le.ACTION_DATA_AVAILABLE";
     public final static String EXTRA_DATA = "com.example.bluetooth.le.EXTRA_DATA";
 
+    public final static UUID UUID_HELMET_LOCK = UUID.fromString("00000001-0000-1000-8000-00805f9b34fb");
     public final static UUID UUID_HEART_RATE_MEASUREMENT = UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
 
 
@@ -142,7 +146,10 @@ public class BluetoothLeService extends Service {
             final int heartRate = characteristic.getIntValue(format, 1);
 //            Log.d(TAG, String.format("Received heart rate: %d", heartRate));
             intent.putExtra(EXTRA_DATA, String.valueOf(heartRate));
-        } else {
+        } else if(UUID_HELMET_LOCK.equals(characteristic.getUuid())){
+            System.out.println("*   Bluetooth Le Service broadcast update has found Helmet Gatt Characteristic");
+        }
+        else {
             // For all other profiles, writes the data formatted in HEX.
             final byte[] data = characteristic.getValue();
             if (data != null && data.length > 0) {
@@ -298,8 +305,9 @@ public class BluetoothLeService extends Service {
 		}
 
 		System.out.println("*	characteristic : " + characteristic);
+
 		try{
-			System.out.println("*	Converted Data ; " + URLEncoder.encode(data, "utf-8"));
+			System.out.println("*	Sending converted data to Gatt Server :  " + URLEncoder.encode(data, "utf-8"));
 			characteristic.setValue(URLEncoder.encode(data, "utf-8"));
 			mBluetoothGatt.writeCharacteristic(characteristic);
 		} catch(UnsupportedEncodingException e){
@@ -319,7 +327,6 @@ public class BluetoothLeService extends Service {
             System.out.println("*   BluetoothAdapter not initialized");
             return;
         }
-        mBluetoothGatt.setCharacteristicNotification(characteristic, enabled);
 
         // This is specific to Heart Rate Measurement.
         if (UUID_HEART_RATE_MEASUREMENT.equals(characteristic.getUuid())) {
@@ -328,6 +335,10 @@ public class BluetoothLeService extends Service {
                     UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
             descriptor.setValue(BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE);
             mBluetoothGatt.writeDescriptor(descriptor);
+        }
+
+        if(UUID_HELMET_LOCK.equals(characteristic.getUuid())){
+            System.out.println("*   setCharNotification has found Helmet Gatt Characteristic");
         }
     }
 
