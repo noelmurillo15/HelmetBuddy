@@ -16,6 +16,8 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.IBinder;
+import android.support.annotation.NonNull;
+
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
@@ -45,7 +47,6 @@ public class BluetoothLeService extends Service {
 
     public final static UUID UUID_HELMET_LOCK_WRITE = UUID.fromString("6e400002-b5a3-f393-e0a9-e50e24dcca9e");
     public final static UUID UUID_HELMET_LOCK_READ = UUID.fromString("6e400003-b5a3-f393-e0a9-e50e24dcca9e");
-    protected static final UUID CHARACTERISTIC_UPDATE_NOTIFICATION_DESCRIPTOR_UUID = UUID.fromString("00002902-0000-1000-8000-00805f9b34fb");
     public final static UUID UUID_HEART_RATE_MEASUREMENT = UUID.fromString(SampleGattAttributes.HEART_RATE_MEASUREMENT);
 
 
@@ -111,6 +112,7 @@ public class BluetoothLeService extends Service {
 
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
+            super.onCharacteristicRead(gatt, characteristic, status);
             System.out.println("*****   BluetoothLeService::BluetoothGattCallback::onCharacteristicRead");
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
@@ -119,6 +121,7 @@ public class BluetoothLeService extends Service {
 
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
+            super.onCharacteristicChanged(gatt, characteristic);
             System.out.println("*****   BluetoothLeService::BluetoothGattCallback::onCharacteristicChanged");
             broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
         }
@@ -137,6 +140,7 @@ public class BluetoothLeService extends Service {
         // This is special handling for the Heart Rate Measurement profile.  Data parsing is
         // carried out as per profile specifications:
         if (UUID_HEART_RATE_MEASUREMENT.equals(characteristic.getUuid())) {
+            System.out.println("*   Bluetooth Le Service broadcast update has found UUID_HEART_RATE_MEASUREMENT");
             int flag = characteristic.getProperties();
             int format = -1;
             if ((flag & 0x01) != 0) {
@@ -145,7 +149,6 @@ public class BluetoothLeService extends Service {
                 format = BluetoothGattCharacteristic.FORMAT_UINT8;
             }
             final int heartRate = characteristic.getIntValue(format, 1);
-//            Log.d(TAG, String.format("Received heart rate: %d", heartRate));
             intent.putExtra(EXTRA_DATA, String.valueOf(heartRate));
         } else if(UUID_HELMET_LOCK_WRITE.equals(characteristic.getUuid())){
             System.out.println("*   Bluetooth Le Service broadcast update has found UUID_HELMET_LOCK_WRITE");
@@ -292,12 +295,8 @@ public class BluetoothLeService extends Service {
      *
      * @param characteristic The characteristic to read from.
      */
-    public void readCharacteristic(BluetoothGattCharacteristic characteristic) {
+    public void readCharacteristic(@NonNull BluetoothGattCharacteristic characteristic) {
         System.out.println("*****   BluetoothLeService::readCharacteristic");
-        if (mBluetoothAdapter == null || mBluetoothGatt == null) {
-            System.out.println("*   BluetoothAdapter not initialized");
-            return;
-        }
         mBluetoothGatt.readCharacteristic(characteristic);
     }
 
@@ -337,15 +336,15 @@ public class BluetoothLeService extends Service {
             mBluetoothGatt.writeDescriptor(descriptor);
         }
 
-        if(UUID_HELMET_LOCK_WRITE.equals(characteristic.getUuid())){
-            System.out.println("*   setCharNotification has found UUID_HELMET_LOCK_WRITE");
-        }
+//        if(UUID_HELMET_LOCK_WRITE.equals(characteristic.getUuid())){
+//            System.out.println("*   setCharNotification has found UUID_HELMET_LOCK_WRITE");
+//        }
 
         if(UUID_HELMET_LOCK_READ.equals(characteristic.getUuid())){
             System.out.println("*   setCharNotification has found UUID_HELMET_LOCK_READ");
-            BluetoothGattDescriptor descriptor = characteristic.getDescriptor(UUID_HELMET_LOCK_READ);
+            BluetoothGattDescriptor descriptor = characteristic.getDescriptor(UUID.fromString(SampleGattAttributes.CLIENT_CHARACTERISTIC_CONFIG));
             if(descriptor != null) {
-                System.out.println("*   Writing to Notification descriptor");
+                System.out.println("*   Writing to UUID_HELMET_LOCK_READ Notification descriptor");
                 descriptor.setValue(enabled ? BluetoothGattDescriptor.ENABLE_NOTIFICATION_VALUE : new byte[]{0x00, 0x00});
                 mBluetoothGatt.writeDescriptor(descriptor);
             }

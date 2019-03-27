@@ -5,6 +5,7 @@
     android:versionName="1.0">
 
     <!--    Required permissions for BLE Scan on API 26+ -->
+    <uses-feature android:name="android.hardware.location.gps" />
     <uses-feature android:name="android.hardware.bluetooth_le" android:required="true"/>
     <uses-permission android:name="android.permission.BLUETOOTH"/>
     <uses-permission android:name="android.permission.BLUETOOTH_ADMIN"/>

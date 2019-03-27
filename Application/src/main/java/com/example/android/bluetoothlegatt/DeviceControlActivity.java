@@ -59,12 +59,10 @@ public class DeviceControlActivity extends Activity {
     ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics = new ArrayList<>();
     boolean mConnected = false;
 
-
     BluetoothGattCharacteristic mNotifyWrite;
     BluetoothGattCharacteristic mHelmetLockWrite;
     BluetoothGattCharacteristic mNotifyRead;
     BluetoothGattCharacteristic mHelmetLockRead;
-
 
     final String LIST_NAME = "NAME";
     final String LIST_UUID = "UUID";
@@ -157,6 +155,9 @@ public class DeviceControlActivity extends Activity {
                 displayGattServices(mBluetoothLeService.getSupportedGattServices());
             } else if (BluetoothLeService.ACTION_DATA_AVAILABLE.equals(action)) {
                 displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
+            } else if(BluetoothLeService.EXTRA_DATA.equals(action)){
+                System.out.println("*   EXTRA DATA AVAILABLE");
+                displayData(intent.getStringExtra(BluetoothLeService.EXTRA_DATA));
             }
 
             if(BluetoothAdapter.ACTION_STATE_CHANGED.equals(intent.getAction())){
@@ -201,7 +202,8 @@ public class DeviceControlActivity extends Activity {
 
     void clearUI() {
         System.out.println("*****   DeviceControlActivity::clearUI CALLED!   *****");
-        mDataField.setText(R.string.no_data);
+        if(mDataField != null)
+            mDataField.setText(R.string.no_data);
     }
 
     @Override
@@ -288,45 +290,33 @@ public class DeviceControlActivity extends Activity {
                     }
 
                     mNotifyWrite = mHelmetLockWrite;
-                    mBluetoothLeService.writeCharacteristic(mNotifyWrite, "0");
                     mBluetoothLeService.setCharacteristicNotification(mNotifyWrite, true);
 
-                    final Handler handler = new Handler();
-                    final int delay = 5000; //milliseconds
-
-                    handler.postDelayed(new Runnable(){
-                        public void run(){
-                            if(mNotifyWrite != null){
-                                mBluetoothLeService.writeCharacteristic(mNotifyWrite, "s");
-                            }
-                            handler.postDelayed(this, delay);
-                        }
-                    }, delay);
+//                    final Handler handler = new Handler();
+//                    final int delay = 5000; //milliseconds
+//                    handler.postDelayed(new Runnable(){
+//                        public void run(){
+//                            if(mNotifyWrite != null){
+//                                mBluetoothLeService.writeCharacteristic(mNotifyWrite, "s");
+//                                mBluetoothLeService.readCharacteristic(mNotifyWrite);
+//                                mBluetoothLeService.readCharacteristic(mNotifyRead);
+//                            }
+//                            handler.postDelayed(this, delay);
+//                        }
+//                    }, delay);
                 }
-                else if(mBluetoothLeService.UUID_HELMET_LOCK_READ.equals(gattCharacteristic.getUuid())){
-                    System.out.println("*   Adding Helmet Lock Gatt Characteristic Read");
-                    mHelmetLockRead = gattCharacteristic;
-                    if (mNotifyRead != null) {
-                        mBluetoothLeService.setCharacteristicNotification(mNotifyRead, false);
-                        mNotifyRead = null;
-                    }
-
-                    mNotifyRead = mHelmetLockRead;
-                    mBluetoothLeService.readCharacteristic(mNotifyRead);
-                    mBluetoothLeService.setCharacteristicNotification(mNotifyRead, true);
-
-                    final Handler handler = new Handler();
-                    final int delay = 5000; //milliseconds
-
-                    handler.postDelayed(new Runnable(){
-                        public void run(){
-                            if(mNotifyRead != null){
-                                mBluetoothLeService.readCharacteristic(mNotifyRead);
-                            }
-                            handler.postDelayed(this, delay);
-                        }
-                    }, delay);
-                }
+//                else if(mBluetoothLeService.UUID_HELMET_LOCK_READ.equals(gattCharacteristic.getUuid())){
+//                    System.out.println("*   Adding Helmet Lock Gatt Characteristic Read");
+//                    mHelmetLockRead = gattCharacteristic;
+//                    if (mNotifyRead != null) {
+//                        mBluetoothLeService.setCharacteristicNotification(mNotifyRead, false);
+//                        mNotifyRead = null;
+//                    }
+//
+//                    mNotifyRead = mHelmetLockRead;
+//                    mBluetoothLeService.readCharacteristic(mNotifyRead);
+//                    mBluetoothLeService.setCharacteristicNotification(mNotifyRead, true);
+//                }
 
                 charas.add(gattCharacteristic);
                 HashMap<String, String> currentCharaData = new HashMap<>();
@@ -372,8 +362,9 @@ public class DeviceControlActivity extends Activity {
             popup_settings = findViewById(R.id.popup_settings_button);
             popup_settings_window = findViewById(R.id.info_popup_window);
             mTextViewDeviceName = findViewById(R.id.device_name);
-            mDataField = findViewById(R.id.device_data);
             mTextViewDeviceAddress = findViewById(R.id.device_address);
+            mDataField = findViewById(R.id.device_data);
+            mDataField.setText("0");
 
             popup_settings_window.setVisibility(View.GONE);
 
@@ -438,7 +429,7 @@ public class DeviceControlActivity extends Activity {
             ((TextView) findViewById(R.id.UnlockLock)).setText(getResources().getString(R.string.lock_this_helmet));
             if(mNotifyWrite != null) {
                 mBluetoothLeService.writeCharacteristic(mNotifyWrite, "1");
-                mDataField.setText("0");
+                mDataField.setText("1");
             }
         }
     }
