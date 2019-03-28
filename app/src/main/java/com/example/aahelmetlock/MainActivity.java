@@ -61,7 +61,7 @@ public class MainActivity extends AppCompatActivity {
     /**
      * BLE Scan period : 2 seconds
      */
-    static final long SCAN_PERIOD = 2000;
+    static final long SCAN_PERIOD = 1000;
 
 
     /**

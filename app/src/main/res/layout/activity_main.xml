@@ -12,7 +12,7 @@
 
         <Space
             android:layout_width="match_parent"
-            android:layout_height="100dp" />
+            android:layout_height="36dp" />
 
         <Button
             android:id="@+id/helmet_button"
