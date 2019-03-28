@@ -24,6 +24,8 @@ const int AIN1 = A0;
 const int AIN2 = A1;
 const int SLP = A2;
 
+#define VBATPIN A9
+
 enum program_state
 {
   READING_GATT_CHARACTERISTIC,
@@ -139,7 +141,9 @@ void setup(void)
   ble.begin(VERBOSE_MODE);
   ble.echo(false);
 
-//  Serial.println("======= Helmet Lock Firmware =========");
+  Serial.println("======= Helmet Lock Firmware =========");
+
+  BleModuleCommandBlocking(&ble, "AT+GATTCLEAR", replyLines[0]);
 
   BleModuleCommandBlocking(&ble, "AT+GAPDEVNAME", replyLines[0]);
 
@@ -147,12 +151,11 @@ void setup(void)
   {
     BleModuleCommandBlocking(&ble, "AT+GAPDEVNAME=HelmetLock", replyLines[0]);
   }
-
-  //BleModuleCommandBlocking(&ble, "AT+GATTCLEAR", replyLines[0]);
-  //BleModuleCommandBlocking(&ble, "AT+GATTADDSERVICE=UUID128=0F-1E-2D-3C-4B-5A-69-78-87-96-A5-B4-C3-D2-E1-F0", replyLines[0]);
-  //BleModuleCommandBlocking(&ble, "AT+GATTADDCHAR=UUID=0x0001,PROPERTIES=0x0A,MIN_LEN=1,MAX_LEN=1,VALUE=0x0", replyLines[0]); // Property 0x0A means read/write (0x02 read + 0x08 write)
-
-//  Serial.println("Setup complete");
+  
+//  BleModuleCommandBlocking(&ble, "AT+GATTADDSERVICE=UUID=0x180F", replyLines[0]);
+//  BleModuleCommandBlocking(&ble, "AT+GATTADDCHAR=UUID=0x2A19,PROPERTIES=0x0A,MIN_LEN=1,VALUE=100", replyLines[0]); // Property 0x0A means read/write (0x02 read + 0x08 write)
+  
+  Serial.println("Setup complete");
 
   // Blink the LED a few times to signify startup.
   for(int i = 0; i < 10; i++)
@@ -214,10 +217,10 @@ void loop(void)
           }
           else if(strncmp(ble.buffer, "s", 1) == 0)
           {
-            if(helmetIsUnlocked)
-              ble.println("AT+BLEUARTTX=1");
-            else
-              ble.println("AT+BLEUARTTX=0");
+//            if(helmetIsUnlocked)
+//              ble.println("AT+BLEUARTTX=1");
+//            else
+//              ble.println("AT+BLEUARTTX=0");
           }
           else{
             CloseLock();
@@ -238,5 +241,18 @@ void loop(void)
     }break;
   }
 
-  delay(50);
+//  float measuredvbat = analogRead(VBATPIN);
+//  measuredvbat *= 2;    // we divided by 2, so multiply back
+//  measuredvbat *= 3.3;  // Multiply by 3.3V, our reference voltage
+//  measuredvbat /= 1024; // convert to voltage
+//  Serial.print("VBat: " ); Serial.println(measuredvbat);
+//
+
+
+  delay(200);
+  
+//  BleModuleCommandBlocking(&ble, "AT+GATTCHAR=1,32", replyLines[0]);
+//  BleModuleCommandBlocking(&ble, "AT+GATTCHAR=1", replyLines[0]);
+
+//  delay(100);
 }

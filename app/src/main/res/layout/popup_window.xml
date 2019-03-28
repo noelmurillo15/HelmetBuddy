@@ -10,6 +10,9 @@
     android:padding="10dp"
     android:background="@drawable/rounded_edge">
 
+
+
+
     <Space
         android:layout_width="match_parent"
         android:layout_height="10dp" />
@@ -69,7 +72,7 @@
         android:visibility="visible">
 
         <LinearLayout
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal">
 
@@ -89,6 +92,19 @@
                 android:text="@string/disconnected"
                 android:textSize="16sp"
                 android:textStyle="normal"
+                android:typeface="normal" />
+
+
+            <Space
+                android:layout_width="25dp"
+                android:layout_height="wrap_content" />
+
+            <Button
+                android:id="@+id/battery_indicator"
+                android:layout_width="32dp"
+                android:layout_height="32dp"
+                android:background="@drawable/battery_full_icon"
+                android:textColor="#FFF"
                 android:typeface="normal" />
 
         </LinearLayout>

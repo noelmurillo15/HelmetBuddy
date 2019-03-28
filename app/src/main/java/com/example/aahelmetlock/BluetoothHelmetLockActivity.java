@@ -10,6 +10,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.content.ServiceConnection;
+import android.content.pm.ActivityInfo;
 import android.os.Bundle;
 import android.os.IBinder;
 import android.view.LayoutInflater;
@@ -22,6 +23,8 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Timer;
+import java.util.TimerTask;
 
 
 public class BluetoothHelmetLockActivity extends Activity {
@@ -38,6 +41,7 @@ public class BluetoothHelmetLockActivity extends Activity {
     Button mUnlockLockButton;
     Button mPopupCloseButton;
     Button popup_settings;
+    Button mBattery_indicator;
 
 	/** Popup Settings UI    */
     LinearLayout popup_settings_window;
@@ -45,6 +49,7 @@ public class BluetoothHelmetLockActivity extends Activity {
     TextView mPopupConnectionState;
     TextView mTextViewDeviceAddress;
     TextView mDataField;
+    int mBatteryLevel;
 
 	/** Progress Circle	*/
     RelativeLayout mProgressCircle;
@@ -64,8 +69,8 @@ public class BluetoothHelmetLockActivity extends Activity {
 	/**	BLE Service Characteristic references	*/
     BluetoothGattCharacteristic mNotifyWrite;
     BluetoothGattCharacteristic mHelmetLockWrite;
-    BluetoothGattCharacteristic mNotifyRead;
-    BluetoothGattCharacteristic mHelmetLockRead;
+//    BluetoothGattCharacteristic mNotifyRead;
+//    BluetoothGattCharacteristic mHelmetLockRead;
 
     final String LIST_UUID = "UUID";
 
@@ -78,6 +83,8 @@ public class BluetoothHelmetLockActivity extends Activity {
 
 		/**	Set view to progress circle while app attempts to connectto passed in bluetooth device	*/
         setContentView(R.layout.gatt_services_characteristics);
+
+        setRequestedOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT);
 
 		/**	Set view's background photo	*/
         getWindow().getDecorView().setBackground(getResources().getDrawable(R.drawable.spinbg));
@@ -106,6 +113,8 @@ public class BluetoothHelmetLockActivity extends Activity {
             final boolean result = mBluetoothLeService.connect(mDeviceAddress);
             System.out.println("*   Connect request result=" + result);
         }
+
+        mBatteryLevel = 100;
 
 		/**	Set progress circle visible	*/
         if(mProgressCircle == null)
@@ -303,6 +312,18 @@ public class BluetoothHelmetLockActivity extends Activity {
                     mBluetoothLeService.setCharacteristicNotification(mNotifyWrite, true);
                 }
 
+//                else if(mBluetoothLeService.UUID_BATTERY_LEVEL_READ.equals(gattCharacteristic.getUuid())){
+//                    System.out.println("*   Battery Level Characteristic was found!");
+//                    mHelmetLockRead = gattCharacteristic;
+//                    if (mNotifyRead != null) {
+//                        mBluetoothLeService.setCharacteristicNotification(mNotifyRead, false);
+//                        mNotifyRead = null;
+//                    }
+//                    mNotifyRead = mHelmetLockRead;
+//                    mBluetoothLeService.setCharacteristicNotification(mNotifyRead, true);
+//                }
+
+
                 charas.add(gattCharacteristic);
                 HashMap<String, String> currentCharaData = new HashMap<>();
                 uuid = gattCharacteristic.getUuid().toString();
@@ -372,6 +393,23 @@ public class BluetoothHelmetLockActivity extends Activity {
         mPopupConnectionState = findViewById(R.id.DisconnectedText);
         mUnlockLockButton = findViewById(R.id.UnlockLock);
         mPopupCloseButton = findViewById(R.id.close_popup_window);
+        mBattery_indicator = findViewById(R.id.battery_indicator);
+
+        if(mBattery_indicator != null){
+            if(mBatteryLevel >= 4){
+                mBattery_indicator.setBackgroundResource(R.drawable.battery_full_icon);
+            }
+            else if(mBatteryLevel >= 3 && mBatteryLevel < 4){
+                mBattery_indicator.setBackgroundResource(R.drawable.battery_almost_full_icon);
+            }
+            else if(mBatteryLevel >= 2 && mBatteryLevel < 3){
+                mBattery_indicator.setBackgroundResource(R.drawable.battery_low_icon);
+            }
+            else{
+                mBattery_indicator.setBackgroundResource(R.drawable.battery_very_low_icon);
+            }
+        }
+
         locked = false;
         toggleLock();
 
@@ -394,7 +432,7 @@ public class BluetoothHelmetLockActivity extends Activity {
 							}
 						});
 					}
-				}, 1250);
+				}, 1000);
             }
         });
         mPopupCloseButton.setOnClickListener(new View.OnClickListener() {
@@ -439,6 +477,8 @@ public class BluetoothHelmetLockActivity extends Activity {
 
     /** Toggles the lock bool   */
     void toggleLock(){
+        //mBluetoothLeService.getBatteryLevel();
+
         locked = !locked;
         if(!connected)
             locked = true;

@@ -48,6 +48,11 @@ public class BluetoothLeGattService  extends Service {
     public final static UUID UUID_HELMET_LOCK_WRITE = UUID.fromString("6e400002-b5a3-f393-e0a9-e50e24dcca9e");
     public final static UUID UUID_HELMET_LOCK_READ = UUID.fromString("6e400003-b5a3-f393-e0a9-e50e24dcca9e");
 
+    /**	Helmet Lock Service UUID's	*/
+    public final static UUID UUID_BATTERY_SERVICE = UUID.fromString("0000180F-0000-1000-8000-00805f9b34fb");
+    public final static UUID UUID_BATTERY_LEVEL_READ = UUID.fromString("00002a19-0000-1000-8000-00805f9b34fb");
+
+
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -105,9 +110,6 @@ public class BluetoothLeGattService  extends Service {
 
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-//            System.out.println("*****   BluetoothLeService::BluetoothGattCallback::onCharacteristicRead");
-            super.onCharacteristicRead(gatt, characteristic, status);
-
 			/**	On a successful gatt characteristic read	*/
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
@@ -137,6 +139,9 @@ public class BluetoothLeGattService  extends Service {
             System.out.println("*   Bluetooth Le Service broadcast update has found UUID_HELMET_LOCK_WRITE");
         } else if (UUID_HELMET_LOCK_READ.equals(characteristic.getUuid())) {
             System.out.println("*   Bluetooth Le Service broadcast update has found UUID_HELMET_LOCK_READ");
+        } else if (UUID_BATTERY_LEVEL_READ.equals(characteristic.getUuid())) {
+            System.out.println("*   Bluetooth Le Service broadcast update has found UUID_BATTERY_LEVEL_READ");
+            System.out.println("*   characteristic.getStringValue(0) = " + characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0));
         } else {
             // For all other profiles, writes the data formatted in HEX.
             final byte[] data = characteristic.getValue();
@@ -148,6 +153,29 @@ public class BluetoothLeGattService  extends Service {
             }
         }
         sendBroadcast(intent);
+    }
+
+    public void getBatteryLevel(){
+        System.out.println("*****   Getting Battery Level()     *****");
+        BluetoothGattService batteryService = mBluetoothGatt.getService(UUID_BATTERY_SERVICE);
+
+        if(batteryService == null){
+            System.out.println("*   Battery Service was not found!");
+            return;
+        }
+
+        BluetoothGattCharacteristic batteryLevel = batteryService.getCharacteristic(UUID_BATTERY_LEVEL_READ);
+        if(batteryLevel == null){
+            System.out.println("*   Battery Characteristic was not found!");
+            return;
+        }
+
+        System.out.println("*   Battery Characteristic UUID : " + batteryLevel.getUuid());
+        System.out.println("*   Battery Characteristic Property : " + batteryLevel.getProperties());
+//        System.out.println("*   Battery Characteristic Int : " + batteryLevel.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0));
+
+        mBluetoothGatt.readCharacteristic(batteryLevel);
+        System.out.println("*   BatteryLevel = " + mBluetoothGatt.readCharacteristic(batteryLevel));
     }
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
@@ -252,8 +280,7 @@ public class BluetoothLeGattService  extends Service {
         mBluetoothGatt = null;
     }
 
-    public void readCharacteristic(BluetoothGattCharacteristic characteristic) {
-//        System.out.println("*****   BluetoothLeService::readCharacteristic");
+    public void readCharacteristic(BluetoothGattCharacteristic characteristic){
         mBluetoothGatt.readCharacteristic(characteristic);
     }
 
