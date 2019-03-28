@@ -380,6 +380,21 @@ public class BluetoothHelmetLockActivity extends Activity {
             @Override
             public void onClick(View v) {
                 toggleLock();
+
+				mUnlockLockButton.setEnabled(false);
+
+				Timer buttonTimer = new Timer();
+				buttonTimer.schedule(new TimerTask() {
+					@Override
+					public void run() {
+						runOnUiThread(new Runnable() {
+							@Override
+							public void run() {
+								mUnlockLockButton.setEnabled(true);
+							}
+						});
+					}
+				}, 1250);
             }
         });
         mPopupCloseButton.setOnClickListener(new View.OnClickListener() {
