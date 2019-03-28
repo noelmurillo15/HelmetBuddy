@@ -2,9 +2,8 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/A+A Helmet Lock.iml" filepath="$PROJECT_DIR$/A+A Helmet Lock.iml" />
-      <module fileurl="file://$PROJECT_DIR$/Application/Application.iml" filepath="$PROJECT_DIR$/Application/Application.iml" />
-      <module fileurl="file://$PROJECT_DIR$/HelmetBuddy.iml" filepath="$PROJECT_DIR$/HelmetBuddy.iml" />
+      <module fileurl="file://$PROJECT_DIR$/AAHelmetLock.iml" filepath="$PROJECT_DIR$/AAHelmetLock.iml" />
+      <module fileurl="file://$PROJECT_DIR$/app/app.iml" filepath="$PROJECT_DIR$/app/app.iml" />
     </modules>
   </component>
 </project>
