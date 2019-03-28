@@ -24,36 +24,38 @@ import java.util.UUID;
 
 public class BluetoothLeGattService  extends Service {
 
+	/** Bluetooth Variables    */
     private BluetoothManager mBluetoothManager;
     public BluetoothAdapter mBluetoothAdapter;
+    private BluetoothGatt mBluetoothGatt;
 
     private String mBluetoothDeviceAddress;
-    private BluetoothGatt mBluetoothGatt;
     private int mConnectionState = STATE_DISCONNECTED;
 
+	/**	Connection States*/
     private static final int STATE_DISCONNECTED = 0;
     private static final int STATE_CONNECTING = 1;
     private static final int STATE_CONNECTED = 2;
 
+	/**	Activity Actions*/
     public final static String ACTION_GATT_CONNECTED = "com.example.bluetooth.le.ACTION_GATT_CONNECTED";
     public final static String ACTION_GATT_DISCONNECTED = "com.example.bluetooth.le.ACTION_GATT_DISCONNECTED";
     public final static String ACTION_GATT_SERVICES_DISCOVERED = "com.example.bluetooth.le.ACTION_GATT_SERVICES_DISCOVERED";
     public final static String ACTION_DATA_AVAILABLE = "com.example.bluetooth.le.ACTION_DATA_AVAILABLE";
     public final static String EXTRA_DATA = "com.example.bluetooth.le.EXTRA_DATA";
 
+	/**	Helmet Lock Service UUID's	*/
     public final static UUID UUID_HELMET_LOCK_WRITE = UUID.fromString("6e400002-b5a3-f393-e0a9-e50e24dcca9e");
     public final static UUID UUID_HELMET_LOCK_READ = UUID.fromString("6e400003-b5a3-f393-e0a9-e50e24dcca9e");
 
 
     @Override
     public IBinder onBind(Intent intent) {
-//        System.out.println("*****   BluetoothLeService::IBinder::onBind");
         return mBinder;
     }
 
     @Override
     public boolean onUnbind(Intent intent) {
-//        System.out.println("*****   BluetoothLeService::IBinder::onUnbind");
         unregisterReceiver(mReceiver);
         disconnect();
         close();
@@ -71,8 +73,9 @@ public class BluetoothLeGattService  extends Service {
     private final BluetoothGattCallback mGattCallback = new BluetoothGattCallback() {
         @Override
         public void onConnectionStateChange(BluetoothGatt gatt, int status, int newState) {
-//            System.out.println("*****   BluetoothLeService::BluetoothGattCallback::onConnectionStateChange");
             String intentAction;
+
+			/**	On successful bluetooth connection	*/
             if (newState == BluetoothProfile.STATE_CONNECTED) {
                 System.out.println("*   Connected to GATT server");
                 intentAction = ACTION_GATT_CONNECTED;
@@ -80,7 +83,9 @@ public class BluetoothLeGattService  extends Service {
                 broadcastUpdate(intentAction);
                 System.out.println("*   Attempting to start service discovery:" + mBluetoothGatt.discoverServices());
 
-            } else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
+            } 
+			/**	On bluetooth disconnect	*/
+			else if (newState == BluetoothProfile.STATE_DISCONNECTED) {
                 System.out.println("*   Disconnected from GATT server");
                 intentAction = ACTION_GATT_DISCONNECTED;
                 mConnectionState = STATE_DISCONNECTED;
@@ -90,7 +95,7 @@ public class BluetoothLeGattService  extends Service {
 
         @Override
         public void onServicesDiscovered(BluetoothGatt gatt, int status) {
-//            System.out.println("*****   BluetoothLeService::BluetoothGattCallback::onServicesDiscovered");
+			/**	If Gatt services were found, broadcast services	to Activity	*/
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 broadcastUpdate(ACTION_GATT_SERVICES_DISCOVERED);
             } else {
@@ -100,8 +105,10 @@ public class BluetoothLeGattService  extends Service {
 
         @Override
         public void onCharacteristicRead(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic, int status) {
-            super.onCharacteristicRead(gatt, characteristic, status);
 //            System.out.println("*****   BluetoothLeService::BluetoothGattCallback::onCharacteristicRead");
+            super.onCharacteristicRead(gatt, characteristic, status);
+
+			/**	On a successful gatt characteristic read	*/
             if (status == BluetoothGatt.GATT_SUCCESS) {
                 broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
             }
@@ -109,20 +116,21 @@ public class BluetoothLeGattService  extends Service {
 
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-            super.onCharacteristicChanged(gatt, characteristic);
 //            System.out.println("*****   BluetoothLeService::BluetoothGattCallback::onCharacteristicChanged");
+            super.onCharacteristicChanged(gatt, characteristic);
             broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
         }
     };
 
     private void broadcastUpdate(final String action) {
-        final Intent intent = new Intent(action);
 //        System.out.println("*****   BluetoothLeService::broadcastUpdate");
+        final Intent intent = new Intent(action);
         sendBroadcast(intent);
     }
 
     private void broadcastUpdate(final String action, final BluetoothGattCharacteristic characteristic) {
 //        System.out.println("*****   BluetoothLeService::broadcastUpdate::BluetoothGattCharacteristic");
+
         final Intent intent = new Intent(action);
 
         if (UUID_HELMET_LOCK_WRITE.equals(characteristic.getUuid())) {
@@ -146,11 +154,16 @@ public class BluetoothLeGattService  extends Service {
         @Override
         public void onReceive(Context context, Intent intent) {
 //            System.out.println("*****   BluetoothLeService::BroadcastReceiver::onReceive");
+
+			/**	Retrieve Action Type	*/
             String action = intent.getAction();
             if (action.equals(BluetoothAdapter.ACTION_STATE_CHANGED)) {
+				/**	If Bluetooth connection is about to shut off	*/
                 if (mBluetoothAdapter.getState() == BluetoothAdapter.STATE_TURNING_OFF) {
                     System.out.println("*   ACTION_STATE_CHANGED::STATE_TURNING_OFF");
                 }
+
+				/**	If Bluetooth connection has turned off	*/
                 if (mBluetoothAdapter.getState() == BluetoothAdapter.STATE_OFF) {
                     System.out.println("*   ACTION_STATE_CHANGED::STATE_OFF");
                     System.exit(0);
@@ -161,6 +174,8 @@ public class BluetoothLeGattService  extends Service {
 
     public boolean initialize() {
 //        System.out.println("*****   BluetoothLeService::initialize");
+
+		/**	Safety Check	*/
         if (mBluetoothManager == null) {
             mBluetoothManager = (BluetoothManager) getSystemService(Context.BLUETOOTH_SERVICE);
             if (mBluetoothManager == null) {
@@ -175,6 +190,7 @@ public class BluetoothLeGattService  extends Service {
             return false;
         }
 
+		/**	Register the listener in charge of checking bluetooth enabled / disabled	*/
         this.registerReceiver(mReceiver, new IntentFilter(BluetoothAdapter.ACTION_STATE_CHANGED));
 
         return true;
@@ -182,12 +198,14 @@ public class BluetoothLeGattService  extends Service {
 
     public boolean connect(final String address) {
 //        System.out.println("*****   BluetoothLeService::connect");
+
+		/**	Safety Check	*/
         if (mBluetoothAdapter == null || address == null) {
             System.out.println("*   BluetoothAdapter not initialized or unspecified address");
             return false;
         }
 
-        // Previously connected device.  Try to reconnect.
+        /** Previously connected device, Try to reconnect	*/
         if (mBluetoothDeviceAddress != null && address.equals(mBluetoothDeviceAddress) && mBluetoothGatt != null) {
             System.out.println("*   Trying to use an existing mBluetoothGatt for connection");
             if (mBluetoothGatt.connect()) {
@@ -203,8 +221,8 @@ public class BluetoothLeGattService  extends Service {
             System.out.println("*   Device not found.  Unable to connect");
             return false;
         }
-        // We want to directly connect to the device, so we are setting the autoConnect
-        // parameter to false.
+
+        /**	Attempt connection with false auto-connect flag	*/
         System.out.println("*   Trying to create a new connection");
         mBluetoothGatt = device.connectGatt(this, false, mGattCallback);
         mBluetoothDeviceAddress = address;

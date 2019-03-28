@@ -26,37 +26,42 @@ import java.util.List;
 
 public class BluetoothHelmetLockActivity extends Activity {
 
+	/**	Used to retrieve bluetooth device name and address from BLE Scan activity	*/
     public static final String EXTRAS_DEVICE_NAME = "DEVICE_NAME";
     public static final String EXTRAS_DEVICE_ADDRESS = "DEVICE_ADDRESS";
 
-    /** Popup UI    */
-    View popupView;
-    PopupWindow popupWindow;
-    LinearLayout popup_settings_window;
+    /** Popup Window    */
+    View mPopupView;
+    PopupWindow mPopupWindow;
 
+	/** Popup Window Buttons    */
+    Button mUnlockLockButton;
+    Button mPopupCloseButton;
+    Button popup_settings;
+
+	/** Popup Settings UI    */
+    LinearLayout popup_settings_window;
     TextView mTextViewDeviceName;
     TextView mPopupConnectionState;
     TextView mTextViewDeviceAddress;
     TextView mDataField;
 
-    Button unlock_lock;
-    Button popup_close;
-    Button popup_settings;
-
-    RelativeLayout progressCircle;
+	/** Progress Circle	*/
+    RelativeLayout mProgressCircle;
 
     /** Lock Status */
     boolean locked = false;
     boolean connected = false;
     boolean toggleSettings;
 
-    /** Bluetooth Device vars*/
+    /** Bluetooth Device Variables	*/
     String mDeviceName;
     String mDeviceAddress;
+    boolean mConnected = false;
     BluetoothLeGattService mBluetoothLeService;
     ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics = new ArrayList<>();
-    boolean mConnected = false;
 
+	/**	BLE Service Characteristic references	*/
     BluetoothGattCharacteristic mNotifyWrite;
     BluetoothGattCharacteristic mHelmetLockWrite;
     BluetoothGattCharacteristic mNotifyRead;
@@ -68,36 +73,45 @@ public class BluetoothHelmetLockActivity extends Activity {
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
+//        System.out.println("*****   DeviceControlActivity::onCreate CALLED!   *****");
         super.onCreate(savedInstanceState);
-        System.out.println("*****   DeviceControlActivity::onCreate CALLED!   *****");
 
+		/**	Set view to progress circle while app attempts to connectto passed in bluetooth device	*/
         setContentView(R.layout.gatt_services_characteristics);
+
+		/**	Set view's background photo	*/
         getWindow().getDecorView().setBackground(getResources().getDrawable(R.drawable.spinbg));
 
+		/**	Retreieve passed in Bluetooth name and address	*/
         final Intent intent = getIntent();
         mDeviceName = intent.getStringExtra(EXTRAS_DEVICE_NAME);
         mDeviceAddress = intent.getStringExtra(EXTRAS_DEVICE_ADDRESS);
         toggleSettings = false;
 
+		/**	Attempt to bind to Gatt service	*/
         Intent gattServiceIntent = new Intent(this, BluetoothLeGattService.class);
         bindService(gattServiceIntent, mServiceConnection, BIND_AUTO_CREATE);
     }
 
     @Override
     protected void onResume() {
+//        System.out.println("*****   DeviceControlActivity::onResume CALLED!   *****");
         super.onResume();
-        System.out.println("*****   DeviceControlActivity::onResume CALLED!   *****");
+
+		/**	Register receiver that listens for specific bluetooth Actions	*/
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
+
+		/**	Attempt to Connect to BLE Service	*/
         if (mBluetoothLeService != null) {
             final boolean result = mBluetoothLeService.connect(mDeviceAddress);
             System.out.println("*   Connect request result=" + result);
         }
 
-        if(progressCircle == null)
-            progressCircle = findViewById(R.id.loadingPanel);
-        if (progressCircle != null){
-            System.out.println("*   Progress Bar is Not NULL");
-            progressCircle.setVisibility(View.VISIBLE);
+		/**	Set progress circle visible	*/
+        if(mProgressCircle == null)
+            mProgressCircle = findViewById(R.id.loadingPanel);
+        if (mProgressCircle != null){
+            mProgressCircle.setVisibility(View.VISIBLE);
         }
     }
 
@@ -105,13 +119,16 @@ public class BluetoothHelmetLockActivity extends Activity {
     final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder service) {
-            System.out.println("*****   DeviceControlActivity::onServiceConnected CALLED!   *****");
+//            System.out.println("*****   DeviceControlActivity::onServiceConnected CALLED!   *****");
+
+			/**	Attempts to Initialize Bluetootj Service	*/
             mBluetoothLeService = ((BluetoothLeGattService.LocalBinder) service).getService();
             if (!mBluetoothLeService.initialize()) {
                 System.out.println("*****   SYSTEM FINISH::onServiceConnected - Unable to initialize Bluetooth *****");
                 finish();
             }
-            /** Automatically connects to the device upon successful start-up initialization */
+
+            /** Attempts to connect to the device upon successful start-up initialization */
             mBluetoothLeService.connect(mDeviceAddress);
         }
 
@@ -119,7 +136,7 @@ public class BluetoothHelmetLockActivity extends Activity {
         public void onServiceDisconnected(ComponentName componentName) {
             System.out.println("*****   SYSTEM EXIT::onServiceDisconnected *****");
             mBluetoothLeService = null;
-            System.exit(0);
+            finish(); System.exit(0);
         }
     };
 
@@ -133,19 +150,25 @@ public class BluetoothHelmetLockActivity extends Activity {
     final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            System.out.println("*****   DeviceControlActivity::onReceive CALLED!   *****");
+//            System.out.println("*****   DeviceControlActivity::onReceive CALLED!   *****");
+
+			/**	Retreive Action Type*/
             final String action = intent.getAction();
+
+			/**	On successful Gatt Connection	*/
             if (BluetoothLeGattService.ACTION_GATT_CONNECTED.equals(action)) {
-                if (popupWindow == null) {
+                if (mPopupWindow == null) {
                     showPopUp(BluetoothHelmetLockActivity.this);
                 }
                 mConnected = true;
                 updateConnectionState(R.string.connected);
                 invalidateOptionsMenu();
-            } else if (BluetoothLeGattService.ACTION_GATT_DISCONNECTED.equals(action)) {
-                if (popupWindow != null) {
-                    popupWindow.dismiss();
-                    popupWindow = null;
+            } 
+			/**	On unsuccessful Gatt Connection	*/
+			else if (BluetoothLeGattService.ACTION_GATT_DISCONNECTED.equals(action)) {
+                if (mPopupWindow != null) {
+                    mPopupWindow.dismiss();
+                    mPopupWindow = null;
                 }
                 mConnected = false;
                 updateConnectionState(R.string.disconnected);
@@ -153,48 +176,59 @@ public class BluetoothHelmetLockActivity extends Activity {
                 clearUI();
                 System.out.println("*****   SYSTEM EXIT::onBluetoothActionDisconnected *****");
                 System.exit(0);
-            } else if (BluetoothLeGattService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
-                /** Show all the supported services and characteristics on the user interface   */
+            } 
+			/**	On successful retrieval of Gatt services	*/
+			else if (BluetoothLeGattService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
                 displayGattServices(mBluetoothLeService.getSupportedGattServices());
-            } else if (BluetoothLeGattService.ACTION_DATA_AVAILABLE.equals(action)) {
+            } 
+			/**	On successful data transfer	*/
+			else if (BluetoothLeGattService.ACTION_DATA_AVAILABLE.equals(action)) {
                 displayData(intent.getStringExtra(BluetoothLeGattService.EXTRA_DATA));
-            } else if(BluetoothLeGattService.EXTRA_DATA.equals(action)){
-                System.out.println("*   EXTRA DATA AVAILABLE    ");
+            } 
+			/**	On successful extra data transfer	*/
+			else if(BluetoothLeGattService.EXTRA_DATA.equals(action)){
                 displayData(intent.getStringExtra(BluetoothLeGattService.EXTRA_DATA));
             }
 
+			/**	If Bluetooth is turned off, exit application	*/
             if(BluetoothAdapter.ACTION_STATE_CHANGED.equals(intent.getAction())){
                 if(intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1) == BluetoothAdapter.STATE_OFF){
                     System.out.println("*   SYSTEM EXIT::onBluetoothDisabled    ");
-                    System.exit(0);
+                    finish(); System.exit(0);
                 }
             }
         }
     };
 
     void clearUI() {
-        System.out.println("*****   DeviceControlActivity::clearUI CALLED!   *****");
+		/**	Clear all text fields	*/
         if(mDataField != null)
             mDataField.setText(R.string.no_data);
+		if(mTextViewDeviceName != null)
+			mTextViewDeviceName.setText(R.string.no_data);
+		if(mPopupConnectionState != null)
+			mPopupConnectionState.setText(R.string.no_data);
+		if(mTextViewDeviceAddress != null)
+			mTextViewDeviceAddress.setText(R.string.no_data);
     }
 
     @Override
     protected void onPause() {
+//        System.out.println("*****   DeviceControlActivity::onPause CALLED!   *****");
         super.onPause();
-        System.out.println("*****   DeviceControlActivity::onPause CALLED!   *****");
         unregisterReceiver(mGattUpdateReceiver);
     }
 
     @Override
     protected void onDestroy() {
+//        System.out.println("*****   DeviceControlActivity::onDestroy CALLED!   *****");
         super.onDestroy();
-        System.out.println("*****   DeviceControlActivity::onDestroy CALLED!   *****");
         unbindService(mServiceConnection);
         mBluetoothLeService = null;
     }
 
     void updateConnectionState(final int resourceId) {
-        System.out.println("*****   DeviceControlActivity::updateConnectionState CALLED!   *****");
+//        System.out.println("*****   DeviceControlActivity::updateConnectionState CALLED!   *****");
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -214,7 +248,7 @@ public class BluetoothHelmetLockActivity extends Activity {
 
     /** Displays the data from Gatt Characteristic  */
     void displayData(String data) {
-        System.out.println("*****   DeviceControlActivity::displayData CALLED!   *****");
+//        System.out.println("*****   DeviceControlActivity::displayData CALLED!   *****");
         if (data != null) {
             mDataField.setText(data);
         }
@@ -224,14 +258,19 @@ public class BluetoothHelmetLockActivity extends Activity {
      In this sample, we populate the data structure that is bound to the ExpandableListView
      on the UI    */
     void displayGattServices(List<BluetoothGattService> gattServices) {
-        System.out.println("*****   DeviceControlActivity::displayGattServices CALLED!   *****");
+//        System.out.println("*****   DeviceControlActivity::displayGattServices CALLED!   *****");
+
+		/**	Saefty Check	*/
         if (gattServices == null) return;
-        if(progressCircle == null)
-            progressCircle = findViewById(R.id.loadingPanel);
-        if (progressCircle != null){
-            System.out.println("*   Progress Bar is Not NULL");
-            progressCircle.setVisibility(View.GONE);
+
+		/**	Disable Progress Circle	*/
+        if(mProgressCircle == null)
+            mProgressCircle = findViewById(R.id.loadingPanel);
+        if (mProgressCircle != null){
+            mProgressCircle.setVisibility(View.GONE);
         }
+
+		/**	START : searching through connected device's GATT services and characteristics	*/
         String uuid;
         ArrayList<HashMap<String, String>> gattServiceData = new ArrayList<>();
         ArrayList<ArrayList<HashMap<String, String>>> gattCharacteristicData
@@ -273,10 +312,11 @@ public class BluetoothHelmetLockActivity extends Activity {
             mGattCharacteristics.add(charas);
             gattCharacteristicData.add(gattCharacteristicGroupData);
         }
+		/**	END : searching through connected device's GATT services and characteristics	*/
     }
 
     static IntentFilter makeGattUpdateIntentFilter() {
-        System.out.println("*****   DeviceControlActivity::makeGattUpdateIntentFilter CALLED!   *****");
+//        System.out.println("*****   DeviceControlActivity::makeGattUpdateIntentFilter CALLED!   *****");
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(BluetoothLeGattService.ACTION_GATT_CONNECTED);
         intentFilter.addAction(BluetoothLeGattService.ACTION_GATT_DISCONNECTED);
@@ -288,19 +328,19 @@ public class BluetoothHelmetLockActivity extends Activity {
     /** Initializes the popup window if it has never been created
      & finds the references for the UI   */
     public void showPopUp(Context context) {
-        System.out.println("*****   DeviceControlActivity::showPopUp CALLED!   *****");
-        if (popupWindow == null) {
+//        System.out.println("*****   DeviceControlActivity::showPopUp CALLED!   *****");
+        if (mPopupWindow == null) {
             /** Popup View    */
             LinearLayout viewGroup = findViewById(R.id.popup);
             LayoutInflater inflater = (LayoutInflater) context.getSystemService(LAYOUT_INFLATER_SERVICE);
-            popupView = inflater.inflate(R.layout.popup_window, viewGroup);
+            mPopupView = inflater.inflate(R.layout.popup_window, viewGroup);
 
             /** Window Size    */
             int width = LinearLayout.LayoutParams.MATCH_PARENT;
             int height = LinearLayout.LayoutParams.WRAP_CONTENT;
 
             /** Create & Show Popup window  */
-            popupWindow = new PopupWindow(popupView, width, height, false);
+            mPopupWindow = new PopupWindow(mPopupView, width, height, false);
             setContentView(R.layout.popup_window);
 
             popup_settings = findViewById(R.id.popup_settings_button);
@@ -308,7 +348,7 @@ public class BluetoothHelmetLockActivity extends Activity {
             mTextViewDeviceName = findViewById(R.id.device_name);
             mTextViewDeviceAddress = findViewById(R.id.device_address);
             mDataField = findViewById(R.id.device_data);
-            mDataField.setText("0");
+            mDataField.setText("Locked");
 
             popup_settings_window.setVisibility(View.GONE);
 
@@ -316,7 +356,6 @@ public class BluetoothHelmetLockActivity extends Activity {
             popup_settings.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    System.out.println("*****   POPUP SETTINGS BUTTON HAS BEEN CLICKED");
                     toggleSettings = !toggleSettings;
                     if (toggleSettings) {
                         popup_settings_window.setVisibility(View.VISIBLE);
@@ -331,22 +370,22 @@ public class BluetoothHelmetLockActivity extends Activity {
 
         /** Popup UI references */
         mPopupConnectionState = findViewById(R.id.DisconnectedText);
-        unlock_lock = findViewById(R.id.UnlockLock);
-        popup_close = findViewById(R.id.close_popup_window);
+        mUnlockLockButton = findViewById(R.id.UnlockLock);
+        mPopupCloseButton = findViewById(R.id.close_popup_window);
         locked = false;
         toggleLock();
 
         /** Setup Button onClick Listeners  */
-        unlock_lock.setOnClickListener(new View.OnClickListener() {
+        mUnlockLockButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 toggleLock();
             }
         });
-        popup_close.setOnClickListener(new View.OnClickListener() {
+        mPopupCloseButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                popupWindow.dismiss();
+                mPopupWindow.dismiss();
                 onBackPressed();
             }
         });
@@ -361,7 +400,6 @@ public class BluetoothHelmetLockActivity extends Activity {
 
     /** Changes the Lock/Unlock Button text*/
     void onLockChange(){
-//        System.out.println("*****   DeviceControlActivity::onLockChange");
         if(locked){
             ((TextView) findViewById(R.id.UnlockLock)).setText(getResources().getString(R.string.unlock_this_helmet));
             if(mNotifyWrite != null) {
@@ -380,14 +418,12 @@ public class BluetoothHelmetLockActivity extends Activity {
 
     /** Sets the lock bool  */
     void setLock(boolean _b){
-//        System.out.println("*****   DeviceControlActivity::setLock");
         locked = _b;
         onLockChange();
     }
 
     /** Toggles the lock bool   */
     void toggleLock(){
-//        System.out.println("*****   DeviceControlActivity::toggleLock");
         locked = !locked;
         if(!connected)
             locked = true;
