@@ -34,6 +34,8 @@ enum program_state
   WRITING_GATT_CHARACTERISTIC
 };
 
+char* batteryLevel;
+
 static program_state programState = READING_GATT_CHARACTERISTIC;
 
 static bool helmetIsUnlocked = true;
@@ -152,8 +154,8 @@ void setup(void)
     BleModuleCommandBlocking(&ble, "AT+GAPDEVNAME=HelmetLock", replyLines[0]);
   }
   
-//  BleModuleCommandBlocking(&ble, "AT+GATTADDSERVICE=UUID=0x180F", replyLines[0]);
-//  BleModuleCommandBlocking(&ble, "AT+GATTADDCHAR=UUID=0x2A19,PROPERTIES=0x0A,MIN_LEN=1,VALUE=100", replyLines[0]); // Property 0x0A means read/write (0x02 read + 0x08 write)
+  BleModuleCommandBlocking(&ble, "AT+GATTADDSERVICE=UUID=0x180F", replyLines[0]);
+  BleModuleCommandBlocking(&ble, "AT+GATTADDCHAR=UUID=0x2A19,PROPERTIES=0x0A,MIN_LEN=1,VALUE=100", replyLines[0]); // Property 0x0A means read/write (0x02 read + 0x08 write)
   
   Serial.println("Setup complete");
 
@@ -241,18 +243,34 @@ void loop(void)
     }break;
   }
 
-//  float measuredvbat = analogRead(VBATPIN);
-//  measuredvbat *= 2;    // we divided by 2, so multiply back
-//  measuredvbat *= 3.3;  // Multiply by 3.3V, our reference voltage
-//  measuredvbat /= 1024; // convert to voltage
-//  Serial.print("VBat: " ); Serial.println(measuredvbat);
-//
-
-
-  delay(200);
   
-//  BleModuleCommandBlocking(&ble, "AT+GATTCHAR=1,32", replyLines[0]);
+
+  delay(100);
+
+  float measuredvbat = analogRead(VBATPIN);
+  measuredvbat *= 2;    // we divided by 2, so multiply back
+  measuredvbat *= 3.3;  // Multiply by 3.3V, our reference voltage
+  measuredvbat /= 1024; // convert to voltage
+//  Serial.print("VBat: " ); Serial.println(measuredvbat);
+
+  int lvl = 0;
+  if(measuredvbat >= 4)
+    lvl = 4;
+  else if(measuredvbat >= 3 && measuredvbat < 4)
+    lvl = 3;
+  else if(measuredvbat >= 2 && measuredvbat < 3)
+    lvl = 2;
+  else
+    lvl = 1;
+
+  batteryLevel = "AT+GATTCHAR=1,";
+  char integer_string[1];
+  
+  sprintf(integer_string, "%d", lvl);
+  strcat(batteryLevel, integer_string);
+  
+  BleModuleCommandBlocking(&ble, batteryLevel, replyLines[0]);
 //  BleModuleCommandBlocking(&ble, "AT+GATTCHAR=1", replyLines[0]);
 
-//  delay(100);
+  delay(100);
 }

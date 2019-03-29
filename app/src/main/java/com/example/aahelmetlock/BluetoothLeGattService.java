@@ -141,7 +141,10 @@ public class BluetoothLeGattService  extends Service {
             System.out.println("*   Bluetooth Le Service broadcast update has found UUID_HELMET_LOCK_READ");
         } else if (UUID_BATTERY_LEVEL_READ.equals(characteristic.getUuid())) {
             System.out.println("*   Bluetooth Le Service broadcast update has found UUID_BATTERY_LEVEL_READ");
-            System.out.println("*   characteristic.getStringValue(0) = " + characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0));
+            System.out.println("*   characteristic.getStringValue() = " + characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0));
+            String dataToSend = characteristic.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0).toString();
+            System.out.println("*   dataToSend = " + dataToSend);
+            intent.putExtra(EXTRA_DATA, dataToSend);
         } else {
             // For all other profiles, writes the data formatted in HEX.
             final byte[] data = characteristic.getValue();
@@ -153,29 +156,6 @@ public class BluetoothLeGattService  extends Service {
             }
         }
         sendBroadcast(intent);
-    }
-
-    public void getBatteryLevel(){
-        System.out.println("*****   Getting Battery Level()     *****");
-        BluetoothGattService batteryService = mBluetoothGatt.getService(UUID_BATTERY_SERVICE);
-
-        if(batteryService == null){
-            System.out.println("*   Battery Service was not found!");
-            return;
-        }
-
-        BluetoothGattCharacteristic batteryLevel = batteryService.getCharacteristic(UUID_BATTERY_LEVEL_READ);
-        if(batteryLevel == null){
-            System.out.println("*   Battery Characteristic was not found!");
-            return;
-        }
-
-        System.out.println("*   Battery Characteristic UUID : " + batteryLevel.getUuid());
-        System.out.println("*   Battery Characteristic Property : " + batteryLevel.getProperties());
-//        System.out.println("*   Battery Characteristic Int : " + batteryLevel.getIntValue(BluetoothGattCharacteristic.FORMAT_UINT8, 0));
-
-        mBluetoothGatt.readCharacteristic(batteryLevel);
-        System.out.println("*   BatteryLevel = " + mBluetoothGatt.readCharacteristic(batteryLevel));
     }
 
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
