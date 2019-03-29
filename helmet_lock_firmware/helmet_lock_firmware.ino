@@ -3,6 +3,9 @@
  Author: Timothy Barnes
  Email: timothy@veratekdesign.com
  Date: 2019-03-26
+
+ Updated By : Allan Murillo
+ Date : 3/29/2019
 *********************************************************************/
 
 #include <Arduino.h>
@@ -243,8 +246,6 @@ void loop(void)
     }break;
   }
 
-  
-
   delay(100);
 
   float measuredvbat = analogRead(VBATPIN);
@@ -270,7 +271,6 @@ void loop(void)
   strcat(batteryLevel, integer_string);
   
   BleModuleCommandBlocking(&ble, batteryLevel, replyLines[0]);
-//  BleModuleCommandBlocking(&ble, "AT+GATTCHAR=1", replyLines[0]);
 
   delay(100);
 }
