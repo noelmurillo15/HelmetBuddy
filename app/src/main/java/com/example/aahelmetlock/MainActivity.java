@@ -29,7 +29,6 @@ import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -40,29 +39,18 @@ import java.util.TimerTask;
 public class MainActivity extends AppCompatActivity {
 
     /**
-     * Bluetooth Adapter & Ble Device List
+     * Bluetooth Adapter & Ble Device
      */
-    BluetoothAdapter mBluetoothAdapter;
     BluetoothDevice mBluetoothDevice;
-
-    /**
-     * Booleans for BLE_Scan
-     */
-    boolean mConnected = false;
-    boolean mScanning;
-    boolean mPermissions;
-    boolean mGpsScreenActive;
-    boolean mRequestBTActive;
-    boolean mRequestLocationActive;
+    BluetoothAdapter mBluetoothAdapter;
+    BluetoothLeGattService mBluetoothLeService;
 
     /**
      * Bluetooth Device Variables
      */
     String mDeviceName;
     String mDeviceAddress;
-
-    BluetoothLeGattService mBluetoothLeService;
-    ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics = new ArrayList<>();
+    final String LIST_UUID = "UUID";
 
     /**
      * BLE Service Characteristic references
@@ -73,10 +61,20 @@ public class MainActivity extends AppCompatActivity {
     BluetoothGattCharacteristic mNotifyRead;
     BluetoothGattCharacteristic mBatteryRead;
 
-    final String LIST_UUID = "UUID";
+    ArrayList<ArrayList<BluetoothGattCharacteristic>> mGattCharacteristics = new ArrayList<>();
 
     /**
-     * Handler for BLE_ScanCallback
+     * Booleans for BLE_Scan
+     */
+    boolean mScanning;
+    boolean mConnected;
+    boolean mPermissions;
+    boolean mGpsScreenActive;
+    boolean mRequestBTActive;
+    boolean mRequestLocationActive;
+
+    /**
+     * Handler for postdelay BLE_ScanCallback
      */
     Handler mHandler;
     Runnable mRunnable;
@@ -176,7 +174,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onResume() {
-        System.out.println("*****   MainActivity::ON_RESUME HAS BEEN CALLED!    *****");
+        System.out.println("*****   MainActivity::ON_RESUME    *****");
         super.onResume();
 
         /**  Check All permissions needed for BLE Scan   */
@@ -185,46 +183,48 @@ public class MainActivity extends AppCompatActivity {
         /** Can now safely register GattUpdate Intent   */
         registerReceiver(mGattUpdateReceiver, makeGattUpdateIntentFilter());
 
-
+        /**  Find Progress Circle   */
         if (mProgressCircle == null)
             mProgressCircle = findViewById(R.id.loadingPanel);
+
+        /**  Find Helmet Button */
         if (mHelmetButton == null)
             mHelmetButton = findViewById(R.id.helmet_button);
 
+        /**  Find Popup Window */
         if (mPopupWindow == null)
             mPopupWindow = findViewById(R.id.popup);
 
+        /**  Find Popup Buttons */
+        if (mUnlockLockButton == null)
+            mUnlockLockButton = findViewById(R.id.UnlockLock);
+        if (mPopupCloseButton == null)
+            mPopupCloseButton = findViewById(R.id.close_popup_window);
 
+        /**  Find Popup Info Window UI  */
         if (popup_settings == null)
             popup_settings = findViewById(R.id.popup_settings_button);
         if (popup_settings_window == null)
             popup_settings_window = findViewById(R.id.info_popup_window);
+        if (mPopupConnectionState == null)
+            mPopupConnectionState = findViewById(R.id.DisconnectedText);
         if (mTextViewDeviceName == null)
             mTextViewDeviceName = findViewById(R.id.device_name);
         if (mTextViewDeviceAddress == null)
             mTextViewDeviceAddress = findViewById(R.id.device_address);
         if (mDataField == null)
             mDataField = findViewById(R.id.device_data);
-
-        if (mPopupConnectionState == null)
-            mPopupConnectionState = findViewById(R.id.DisconnectedText);
-        if (mUnlockLockButton == null)
-            mUnlockLockButton = findViewById(R.id.UnlockLock);
-        if (mPopupCloseButton == null)
-            mPopupCloseButton = findViewById(R.id.close_popup_window);
         if (mBattery_indicator == null)
             mBattery_indicator = findViewById(R.id.battery_indicator);
 
+        /**  Set UI default values */
         mBattery_indicator.setBackgroundResource(R.drawable.battery_very_low_icon);
-
-
         mPopupCloseButton.setVisibility(View.GONE);
         popup_settings_window.setVisibility(View.GONE);
         popup_settings.setVisibility(View.GONE);
         mUnlockLockButton.setVisibility(View.GONE);
         mProgressCircle.setVisibility(View.GONE);
         mPopupWindow.setVisibility(View.GONE);
-
 
         /**  Start Initial Scan  */
         if (hasPermissions())
@@ -233,19 +233,19 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
-        System.out.println("*****   MainActivity::ON_PAUSE HAS BEEN CALLED!    *****");
+        System.out.println("*****   MainActivity::ON_PAUSE    *****");
         super.onPause();
-        mGpsScreenActive = false;
-        mPermissions = false;
-        mRequestBTActive = false;
-        mRequestLocationActive = false;
-        mScanning = false;
         unregisterReceiver(mGattUpdateReceiver);
+        mRequestLocationActive = false;
+        mGpsScreenActive = false;
+        mRequestBTActive = false;
+        mPermissions = false;
+        mScanning = false;
     }
 
     @Override
     protected void onDestroy() {
-        System.out.println("*****   MainActivity::onDestroy CALLED!   *****");
+        System.out.println("*****   MainActivity::onDestroy   *****");
         super.onDestroy();
         unbindService(mServiceConnection);
         mBluetoothLeService = null;
@@ -258,8 +258,7 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == REQUEST_ENABLE_BT) {
             if (resultCode == Activity.RESULT_CANCELED) {
                 System.out.println("*****   SYSTEM EXIT::onBluetoothEnableCancel *****");
-                finish();
-                System.exit(0);
+                finish(); System.exit(0);
             } else {
                 mRequestBTActive = true;
             }
@@ -272,8 +271,7 @@ public class MainActivity extends AppCompatActivity {
         if (requestCode == REQUEST_ENABLE_LOCATION) {
             if (grantResult[0] == getPackageManager().PERMISSION_DENIED) {
                 System.out.println("*****   SYSTEM EXIT::onLocationEnableDeny *****");
-                finish();
-                System.exit(0);
+                finish(); System.exit(0);
             }
         }
     }
@@ -286,7 +284,7 @@ public class MainActivity extends AppCompatActivity {
      * Bluetooth Scan for BLE devices
      */
     public void scanDevices(final boolean enable) {
-        System.out.println("*****   MainActivity::SCAN_DEVICES HAS BEEN CALLED : " + enable + "    *****");
+        System.out.println("*****   MainActivity::SCAN_DEVICES : " + enable + "    *****");
         if (enable) {
             mScanning = true;
 
@@ -294,7 +292,7 @@ public class MainActivity extends AppCompatActivity {
             if (mProgressCircle != null)
                 mProgressCircle.setVisibility(View.VISIBLE);
 
-            /** Stops scanning after a pre-defined scan period  */
+            /** Runnable setup for stopping ble scan after a pre-defined period of time  */
             if (mRunnable == null) {
                 mRunnable = new Runnable() {
                     public void run() {
@@ -310,10 +308,12 @@ public class MainActivity extends AppCompatActivity {
                     }
                 };
             }
-            mHandler.postDelayed(mRunnable, SCAN_PERIOD);
 
             /** Start the scan  */
             mBluetoothAdapter.startLeScan(mScanCallback);
+
+            /** Start the post delay to stop scan  */
+            mHandler.postDelayed(mRunnable, SCAN_PERIOD);
         } else {
             mScanning = false;
             mBluetoothAdapter.stopLeScan(mScanCallback);
@@ -347,18 +347,18 @@ public class MainActivity extends AppCompatActivity {
 
 
     /**
-     * Code to manage Service lifecycle
+     * Code to manage Bluetooth Service lifecycle
      */
     final ServiceConnection mServiceConnection = new ServiceConnection() {
         @Override
         public void onServiceConnected(ComponentName componentName, IBinder service) {
-            System.out.println("*****   MainActivity::onServiceConnected CALLED!   *****");
+            System.out.println("*****   MainActivity::mServiceConnection::onServiceConnected   *****");
 
             /**    Attempts to Initialize Bluetooth Service	*/
             mBluetoothLeService = ((BluetoothLeGattService.LocalBinder) service).getService();
             if (!mBluetoothLeService.initialize()) {
-                System.out.println("*****   SYSTEM FINISH::onServiceConnected - Unable to initialize Bluetooth *****");
-                finish();
+                System.out.println("*****   SYSTEM EXIT::onServiceConnected - Unable to initialize Bluetooth *****");
+                finish(); System.exit(0);
             }
 
             /** Attempts to connect to the device upon successful start-up initialization */
@@ -369,32 +369,24 @@ public class MainActivity extends AppCompatActivity {
         public void onServiceDisconnected(ComponentName componentName) {
             System.out.println("*****   SYSTEM EXIT::onServiceDisconnected *****");
             mBluetoothLeService = null;
-            finish();
-            System.exit(0);
+            finish(); System.exit(0);
         }
     };
 
     /**
-     * Handles various events fired by the Service
-     * ACTION_GATT_CONNECTED: connected to a GATT server
-     * ACTION_GATT_DISCONNECTED: disconnected from a GATT server
-     * ACTION_GATT_SERVICES_DISCOVERED: discovered GATT services
-     * ACTION_DATA_AVAILABLE: received data from the device
-     * This can be a result of read or notification operations
+     * Handles various events fired by the Bluetooth Service
      */
     final BroadcastReceiver mGattUpdateReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
             System.out.println("*****   MainActivity::mGattUpdateReceiver::onReceive    *****");
 
-            /**    Retreive Action Type*/
+            /**    Retrieve Action Type */
             final String action = intent.getAction();
 
-            /**    On successful Gatt Connection	*/
+            /**    On successful Gatt Connection    */
             if (BluetoothLeGattService.ACTION_GATT_CONNECTED.equals(action)) {
-
                 showPopUp();
-
                 mConnected = true;
                 updateConnectionState(R.string.connected);
                 invalidateOptionsMenu();
@@ -405,8 +397,6 @@ public class MainActivity extends AppCompatActivity {
                 updateConnectionState(R.string.disconnected);
                 invalidateOptionsMenu();
                 clearUI();
-                System.out.println("*****   SYSTEM EXIT::onBluetoothActionDisconnected *****");
-//                System.exit(0);
             }
             /**    On successful retrieval of Gatt services	*/
             else if (BluetoothLeGattService.ACTION_GATT_SERVICES_DISCOVERED.equals(action)) {
@@ -414,12 +404,10 @@ public class MainActivity extends AppCompatActivity {
             }
             /**    On successful data transfer	*/
             else if (BluetoothLeGattService.ACTION_DATA_AVAILABLE.equals(action)) {
-                System.out.println("*   Attempting to read ACTION_DATA_AVAILABLE");
                 displayData(intent.getStringExtra(BluetoothLeGattService.EXTRA_DATA));
             }
             /**    On successful extra data transfer	*/
             else if (BluetoothLeGattService.EXTRA_DATA.equals(action)) {
-                System.out.println("*   Attempting to read EXTRA_DATA");
                 displayData(intent.getStringExtra(BluetoothLeGattService.EXTRA_DATA));
             }
 
@@ -427,18 +415,19 @@ public class MainActivity extends AppCompatActivity {
             if (BluetoothAdapter.ACTION_STATE_CHANGED.equals(intent.getAction())) {
                 if (intent.getIntExtra(BluetoothAdapter.EXTRA_STATE, -1) == BluetoothAdapter.STATE_OFF) {
                     System.out.println("*   SYSTEM EXIT::onBluetoothDisabled    ");
-                    finish();
-                    System.exit(0);
+                    finish(); System.exit(0);
                 }
             }
         }
     };
-
     /*****	END : BLUETOOTH FUNCTIONS	*****/
 
 
+    /**
+     *
+     */
     static IntentFilter makeGattUpdateIntentFilter() {
-        System.out.println("*****   MainActivity::makeGattUpdateIntentFilter CALLED!   *****");
+        System.out.println("*****   MainActivity::makeGattUpdateIntentFilter   *****");
         final IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(BluetoothLeGattService.ACTION_GATT_CONNECTED);
         intentFilter.addAction(BluetoothLeGattService.ACTION_GATT_DISCONNECTED);
@@ -455,7 +444,7 @@ public class MainActivity extends AppCompatActivity {
      * Check for All Permissions
      */
     void checkPermissions() {
-        System.out.println("*****   MainActivity::CheckPermissions HAS BEEN CALLED!    *****");
+        System.out.println("*****   MainActivity::CheckPermissions    *****");
         if (!hasPermissions()) {
             if (!mRequestLocationActive && !mRequestBTActive && !hasGPSActive()) {
                 ShowSettingsAlert();
@@ -567,10 +556,9 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
     /**
      * Tries to find the helmet button which is created when a device has been found
-     * If the helmet button is not found, will do another BLE scan which usually fixes helmet button not found
+     * If the helmet button is not found, will do another BLE scan until found
      */
     void InitializeHelmetButton() {
         System.out.println("*****   MainActivity::InitializeHelmetButton    *****");
@@ -611,11 +599,14 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
+    /**
+     *
+     */
     void establishConnection() {
         if (mProgressCircle != null)
             mProgressCircle.setVisibility(View.VISIBLE);
 
-        System.out.println("*****   MainActivity::establishConnection CALLED!   *****");
+        System.out.println("*****   MainActivity::establishConnection   *****");
         /**    Retrieve passed in Bluetooth name and address	*/
         mDeviceName = mBluetoothDevice.getName();
         mDeviceAddress = mBluetoothDevice.getAddress();
@@ -634,11 +625,11 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-    /*****	END : PRIVATE FUNCTIONS	*****/
-
-
+    /**
+     *
+     */
     void clearUI() {
-        System.out.println("*****   MainActivity::clearUI CALLED!   *****");
+        System.out.println("*****   MainActivity::clearUI   *****");
         /**    Clear all text fields	*/
         if (mDataField != null)
             mDataField.setText(R.string.no_data);
@@ -650,8 +641,11 @@ public class MainActivity extends AppCompatActivity {
             mTextViewDeviceAddress.setText(R.string.no_data);
     }
 
+    /**
+     *
+     */
     void updateConnectionState(final int resourceId) {
-        System.out.println("*****   MainActivity::updateConnectionState CALLED!   *****");
+        System.out.println("*****   MainActivity::updateConnectionState   *****");
         runOnUiThread(new Runnable() {
             @Override
             public void run() {
@@ -672,7 +666,7 @@ public class MainActivity extends AppCompatActivity {
      * Displays the data from Gatt Characteristic
      */
     void displayData(String data) {
-        System.out.println("*****   MainActivity::displayData CALLED!   *****");
+        System.out.println("*****   MainActivity::displayData   *****");
         if (data != null) {
             System.out.println("*   DATA HAS BEEN RECEIVED");
             mBatteryLevel = Integer.parseInt(data);
@@ -696,9 +690,9 @@ public class MainActivity extends AppCompatActivity {
      * on the UI
      */
     void displayGattServices(List<BluetoothGattService> gattServices) {
-        System.out.println("*****   MainActivity::displayGattServices CALLED!   *****");
+        System.out.println("*****   MainActivity::displayGattServices   *****");
 
-        /**    Saefty Check	*/
+        /**    Safety Check	*/
         if (gattServices == null) return;
 
         /**    Disable Progress Circle	*/
@@ -784,7 +778,7 @@ public class MainActivity extends AppCompatActivity {
      * & finds the references for the UI
      */
     void showPopUp() {
-        System.out.println("*****   MainActivity::showPopUp CALLED!   *****");
+        System.out.println("*****   MainActivity::showPopUp   *****");
 
         mHelmetButton.setVisibility(View.GONE);
         mPopupWindow.setVisibility(View.VISIBLE);
@@ -855,7 +849,7 @@ public class MainActivity extends AppCompatActivity {
                     mProgressCircle.setVisibility(View.GONE);
                     mPopupWindow.setVisibility(View.GONE);
 
-                    /**    Make sure user didn't remove any permissions*/
+                    /**    Make sure user didn't remove any permissions */
                     checkPermissions();
 
                     /**  Start Re-Scan  */
@@ -904,12 +898,11 @@ public class MainActivity extends AppCompatActivity {
      * Toggles the lock bool
      */
     void toggleLock() {
-        //mBluetoothLeService.getBatteryLevel();
-
         locked = !locked;
         if (!connected)
             locked = true;
 
         onLockChange();
     }
+    /*****	END : PRIVATE FUNCTIONS	*****/
 }

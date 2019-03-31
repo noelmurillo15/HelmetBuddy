@@ -15,7 +15,6 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Binder;
 import android.os.IBinder;
-
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
 import java.util.List;
@@ -49,7 +48,6 @@ public class BluetoothLeGattService  extends Service {
     public final static UUID UUID_HELMET_LOCK_READ = UUID.fromString("6e400003-b5a3-f393-e0a9-e50e24dcca9e");
 
     /**	Helmet Lock Service UUID's	*/
-    public final static UUID UUID_BATTERY_SERVICE = UUID.fromString("0000180F-0000-1000-8000-00805f9b34fb");
     public final static UUID UUID_BATTERY_LEVEL_READ = UUID.fromString("00002a19-0000-1000-8000-00805f9b34fb");
 
 
@@ -283,7 +281,6 @@ public class BluetoothLeGattService  extends Service {
 //        System.out.println("*****   BluetoothLeService::setCharacteristicNotification");
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
             System.out.println("*   BluetoothAdapter not initialized");
-            return;
         }
     }
 
