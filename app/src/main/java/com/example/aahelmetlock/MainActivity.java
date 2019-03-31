@@ -689,7 +689,7 @@ public class MainActivity extends AppCompatActivity {
                                 }
                             });
                         }
-                    }, 2000);
+                    }, 1000);
 
                     mNotifyRead = mBatteryRead;
                     mLeGattService.readCharacteristic(mNotifyRead);
