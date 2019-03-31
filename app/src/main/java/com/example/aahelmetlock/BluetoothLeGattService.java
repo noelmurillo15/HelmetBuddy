@@ -116,20 +116,20 @@ public class BluetoothLeGattService  extends Service {
 
         @Override
         public void onCharacteristicChanged(BluetoothGatt gatt, BluetoothGattCharacteristic characteristic) {
-//            System.out.println("*****   BluetoothLeService::BluetoothGattCallback::onCharacteristicChanged");
+            System.out.println("*****   BluetoothLeService::BluetoothGattCallback::onCharacteristicChanged");
             super.onCharacteristicChanged(gatt, characteristic);
             broadcastUpdate(ACTION_DATA_AVAILABLE, characteristic);
         }
     };
 
     private void broadcastUpdate(final String action) {
-//        System.out.println("*****   BluetoothLeService::broadcastUpdate");
+        System.out.println("*****   BluetoothLeService::broadcastUpdate");
         final Intent intent = new Intent(action);
         sendBroadcast(intent);
     }
 
     private void broadcastUpdate(final String action, final BluetoothGattCharacteristic characteristic) {
-//        System.out.println("*****   BluetoothLeService::broadcastUpdate::BluetoothGattCharacteristic");
+        System.out.println("*****   BluetoothLeService::broadcastUpdate::BluetoothGattCharacteristic");
 
         final Intent intent = new Intent(action);
 
@@ -159,7 +159,7 @@ public class BluetoothLeGattService  extends Service {
     private final BroadcastReceiver mReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-//            System.out.println("*****   BluetoothLeService::BroadcastReceiver::onReceive");
+            System.out.println("*****   BluetoothLeService::BroadcastReceiver::onReceive");
 
 			/**	Retrieve Action Type	*/
             String action = intent.getAction();
@@ -179,7 +179,7 @@ public class BluetoothLeGattService  extends Service {
     };
 
     public boolean initialize() {
-//        System.out.println("*****   BluetoothLeService::initialize");
+        System.out.println("*****   BluetoothLeService::initialize");
 
 		/**	Safety Check	*/
         if (mBluetoothManager == null) {
@@ -203,7 +203,7 @@ public class BluetoothLeGattService  extends Service {
     }
 
     public boolean connect(final String address) {
-//        System.out.println("*****   BluetoothLeService::connect");
+        System.out.println("*****   BluetoothLeService::connect");
 
 		/**	Safety Check	*/
         if (mBluetoothAdapter == null || address == null) {
@@ -241,7 +241,7 @@ public class BluetoothLeGattService  extends Service {
     }
 
     public void disconnect() {
-//        System.out.println("*****   BluetoothLeService::disconnect");
+        System.out.println("*****   BluetoothLeService::disconnect");
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
             System.out.println("*   BluetoothAdapter not initialized");
             return;
@@ -250,7 +250,7 @@ public class BluetoothLeGattService  extends Service {
     }
 
     public void close() {
-//        System.out.println("*****   BluetoothLeService::close");
+        System.out.println("*****   BluetoothLeService::close");
         if (mBluetoothGatt == null) {
             return;
         }
@@ -259,11 +259,12 @@ public class BluetoothLeGattService  extends Service {
     }
 
     public void readCharacteristic(BluetoothGattCharacteristic characteristic){
+        System.out.println("*****   BluetoothLeService::readCharacteristic");
         mBluetoothGatt.readCharacteristic(characteristic);
     }
 
     public void writeCharacteristic(BluetoothGattCharacteristic characteristic, String data) {
-//        System.out.println("*****   BluetoothLeService::writeCharacteristic");
+        System.out.println("*****   BluetoothLeService::writeCharacteristic");
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
             System.out.println("*	Bluetooth Adapter not initialized");
             return;
@@ -278,14 +279,14 @@ public class BluetoothLeGattService  extends Service {
     }
 
     public void setCharacteristicNotification(BluetoothGattCharacteristic characteristic, boolean enabled) {
-//        System.out.println("*****   BluetoothLeService::setCharacteristicNotification");
+        System.out.println("*****   BluetoothLeService::setCharacteristicNotification");
         if (mBluetoothAdapter == null || mBluetoothGatt == null) {
             System.out.println("*   BluetoothAdapter not initialized");
         }
     }
 
     public List<BluetoothGattService> getSupportedGattServices() {
-//        System.out.println("*****   BluetoothLeService::getSupportedGattServices");
+        System.out.println("*****   BluetoothLeService::getSupportedGattServices");
         if (mBluetoothGatt == null) return null;
         return mBluetoothGatt.getServices();
     }
